@@ -77,3 +77,7 @@ Not all styles and values are compatible between PIXI.Text, mainly because Text 
 ## Example
 
 https://pixijs.io/pixi-html-text/demo/
+
+## Documentation
+
+https://pixijs.io/pixi-html-text/docs/
