@@ -17,8 +17,8 @@
     "postversion": "git push && git push --tags",
     "prepublish": "run-s lint clean build",
     "docs": "jsdoc -c jsdoc.json -R README.md",
-    "predeploy": "run-s docs",
-    "deploy": "gh-pages -d docs"
+    "predeploy": "run-s build docs",
+    "deploy": "gh-pages -d . -s \"{demo,docs,dist}/**\""
   },
   "homepage": "https://pixijs.io/pixi-html-text/",
   "bugs": "https://github.com/pixijs/pixi-html-text/issues",

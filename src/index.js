@@ -22,7 +22,7 @@ export class HTMLText extends Sprite
      * @param {HTMLCanvasElement} [canvas] - Optional canvas to use for rendering.
      *.       if undefined, will generate it's own canvas using createElement.
      */
-    constructor(text = "", style = {}, canvas)
+    constructor(text = '', style = {}, canvas)
     {
         if (typeof btoa === 'undefined')
         {
@@ -46,9 +46,11 @@ export class HTMLText extends Sprite
 
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d');
-        this.resolution = settings.RESOLUTION;
+        this._resolution = settings.RESOLUTION;
+        this._autoResolution = true;
         this._text = null;
         this._style = null;
+        this._loading = false;
         this.text = text;
         this.style = style;
         this.localStyleID = -1;
@@ -60,9 +62,9 @@ export class HTMLText extends Sprite
      * @param {boolean} [respectDirty=true] - Whether to abort updating the
      *        text if the Text isn't dirty and the function is called.
      */
-    updateText(respectDirty = true)
+    updateText(respectDirty)
     {
-        const style = this._style;
+        const { style, canvas, context, resolution } = this;
 
         // check if style has changed..
         if (this.localStyleID !== style.styleID)
@@ -75,8 +77,6 @@ export class HTMLText extends Sprite
         {
             return;
         }
-
-        const { canvas, context, resolution } = this;
 
         let css = `
             display:inline-block;
@@ -140,27 +140,32 @@ export class HTMLText extends Sprite
 
         document.body.removeChild(div);
 
-        canvas.width = Math.ceil(width * resolution);
-        canvas.height = Math.ceil(height * resolution);
+        canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)) * resolution);
+        canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)) * resolution);
 
         context.scale(resolution, resolution);
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        this.updateTexture();
-
-        const image = this._image;
-
-        image.src = `data:image/svg+xml;base64,${btoa(svg)}`;
-        image.onload = () =>
+        if (!this._loading)
         {
-            context.drawImage(
-                image,
-                0, 0, width, height,
-                0, 0, width, height,
-            );
-            image.onload = undefined;
-            image.src = '';
-        };
+            const image = this._image;
+
+            this._loading = true;
+            image.src = `data:image/svg+xml;base64,${btoa(svg)}`;
+            image.onload = () =>
+            {
+                context.drawImage(
+                    image,
+                    0, 0, width, height,
+                    0, 0, width, height,
+                );
+                image.onload = undefined;
+                image.src = '';
+                this._loading = false;
+                this.updateTexture();
+            };
+            this.updateTexture();
+        }
     }
 
     /**
@@ -183,16 +188,8 @@ export class HTMLText extends Sprite
         const padding = style.trim ? 0 : style.padding;
         const baseTexture = texture.baseTexture;
 
-        baseTexture.valid = true;
-        baseTexture.resolution = resolution;
-
-        // baseTexture.realWidth = canvas.width;
-        // baseTexture.realHeight = canvas.height;
-        baseTexture.width = canvas.width / resolution;
-        baseTexture.height = canvas.height / resolution;
-
-        texture.trim.width = texture._frame.width = canvas.width / resolution;
-        texture.trim.height = texture._frame.height = canvas.height / resolution;
+        texture.trim.width = texture._frame.width = Math.ceil(canvas.width / resolution);
+        texture.trim.height = texture._frame.height = Math.ceil(canvas.height / resolution);
         texture.trim.x = -padding;
         texture.trim.y = -padding;
 
@@ -202,7 +199,7 @@ export class HTMLText extends Sprite
         // call sprite onTextureUpdate to update scale if _width or _height were set
         this._onTextureUpdate();
 
-        baseTexture.emit('update', baseTexture);
+        baseTexture.setRealSize(canvas.width, canvas.height, resolution);
 
         this.dirty = false;
     }
@@ -211,18 +208,19 @@ export class HTMLText extends Sprite
      * Renders the object using the WebGL renderer
      *
      * @param {PIXI.Renderer} renderer - The renderer
+     * @protected
      */
-    render(renderer)
+    _render(renderer)
     {
-        if (this.resolution !== renderer.resolution)
+        if (this._autoResolution && this._resolution !== renderer.resolution)
         {
-            this.resolution = renderer.resolution;
+            this._resolution = renderer.resolution;
             this.dirty = true;
         }
 
-        this.updateText();
+        this.updateText(true);
 
-        super.render(renderer);
+        super._render(renderer);
     }
 
     /**
@@ -233,13 +231,13 @@ export class HTMLText extends Sprite
      */
     _renderCanvas(renderer)
     {
-        if (this.resolution !== renderer.resolution)
+        if (this._autoResolution && this._resolution !== renderer.resolution)
         {
-            this.resolution = renderer.resolution;
+            this._resolution = renderer.resolution;
             this.dirty = true;
         }
 
-        this.updateText();
+        this.updateText(true);
 
         super._renderCanvas(renderer);
     }
@@ -252,14 +250,14 @@ export class HTMLText extends Sprite
      */
     getLocalBounds(rect)
     {
-        this.updateText();
+        this.updateText(true);
 
         return super.getLocalBounds(rect);
     }
 
     _calculateBounds()
     {
-        this.updateText();
+        this.updateText(true);
         this.calculateVertices();
         // if we have already done this on THIS frame.
         this._bounds.addQuad(this.vertexData);
@@ -296,14 +294,14 @@ export class HTMLText extends Sprite
      */
     get width()
     {
-        this.updateText();
+        this.updateText(true);
 
         return Math.abs(this.scale.x) * this._texture.orig.width;
     }
 
     set width(value) // eslint-disable-line require-jsdoc
     {
-        this.updateText();
+        this.updateText(true);
 
         const s = sign(this.scale.x) || 1;
 
@@ -317,14 +315,14 @@ export class HTMLText extends Sprite
      */
     get height()
     {
-        this.updateText();
+        this.updateText(true);
 
         return Math.abs(this.scale.y) * this._texture.orig.height;
     }
 
     set height(value) // eslint-disable-line require-jsdoc
     {
-        this.updateText();
+        this.updateText(true);
 
         const s = sign(this.scale.y) || 1;
 
@@ -376,6 +374,30 @@ export class HTMLText extends Sprite
             return;
         }
         this._text = text;
+        this.dirty = true;
+    }
+
+    /**
+     * The resolution / device pixel ratio of the canvas.
+     * This is set to automatically match the renderer resolution by default, but can be overridden by setting manually.
+     * @member {number}
+     * @default 1
+     */
+    get resolution()
+    {
+        return this._resolution;
+    }
+
+    set resolution(value) // eslint-disable-line require-jsdoc
+    {
+        this._autoResolution = false;
+
+        if (this._resolution === value)
+        {
+            return;
+        }
+
+        this._resolution = value;
         this.dirty = true;
     }
 }

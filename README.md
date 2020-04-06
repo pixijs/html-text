@@ -34,3 +34,7 @@ const style = new TextStyle({ fontSize: 20 });
 // Make a new HTMLText object
 const text = new HTMLText("Hello World", style);
 ```
+
+## Example
+
+https://pixijs.io/pixi-html-text/demo/
