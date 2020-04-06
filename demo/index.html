@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>pixi-html-text demo</title>
+    <script src="https://pixijs.download/dev/pixi.min.js"></script>
+    <script src="../dist/html-text.js"></script>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background: #999;
+        }
+    </style>
+  </head>
+  <body>
+    <script>
+      const app = new PIXI.Application({
+        width: 800,
+        height: 500,
+        backgroundColor:0x999999,
+        resizeTo: window
+        //resolution: window.devicePixelRatio,
+        //autoDensity: true
+      });
+      app.stop();
+      document.body.appendChild(app.view);
+
+      const style = new PIXI.TextStyle({
+        fontSize: 20,
+        align: 'justify',
+        letterSpacing: 3,
+        wordWrap: true,
+        wordWrapWidth: 400,
+        lineHeight: 48
+      });
+
+      const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur adipiscing elit</b>. Phasellus porta nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
+
+      const text2 = new PIXI.HTMLText(text, style);
+      text2.y = 20;
+      text2.x = 20;
+
+      const rect = new PIXI.Graphics()
+        .beginFill(0xbbbbbb)
+        .drawRect(text2.x, text2.y, text2.width, text2.height);
+
+      app.stage.addChild(rect, text2);
+      app.start();
+    </script>
+  </body>
+</html>
