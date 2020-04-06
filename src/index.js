@@ -310,7 +310,7 @@ export class HTMLText extends Sprite
         this._style = null;
         this._parser = null;
         this._image.onload = null;
-        this._image.src = "";
+        this._image.src = '';
         this._image = null;
     }
 
