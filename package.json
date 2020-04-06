@@ -20,7 +20,7 @@
     "predeploy": "run-s build docs",
     "deploy": "gh-pages -d . -s \"{demo,docs,dist}/**\""
   },
-  "homepage": "https://pixijs.io/pixi-html-text/",
+  "homepage": "https://pixijs.io/pixi-html-text/docs/",
   "bugs": "https://github.com/pixijs/pixi-html-text/issues",
   "repository": {
     "type": "git",
