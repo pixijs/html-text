@@ -230,7 +230,7 @@ export class HTMLText extends Sprite
      * Renders the object using the WebGL renderer
      *
      * @param {PIXI.Renderer} renderer - The renderer
-     * @protected
+     * @private
      */
     _render(renderer)
     {
