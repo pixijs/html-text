@@ -2,7 +2,7 @@ import { Sprite } from '@pixi/sprite';
 import { settings } from '@pixi/settings';
 import { Texture } from '@pixi/core';
 import { Rectangle } from '@pixi/math';
-import { trimCanvas, sign } from '@pixi/utils';
+import { trimCanvas, sign, hex2rgb, hex2string } from '@pixi/utils';
 import { TextStyle } from '@pixi/text';
 
 /**
@@ -91,11 +91,6 @@ export class HTMLText extends Sprite
             padding:${style.padding}px;
         `;
 
-        if (style.breakWords)
-        {
-            css += 'word-break:break-all;';
-        }
-
         if (style.lineHeight)
         {
             css += `line-height:${style.lineHeight}px;`;
@@ -103,24 +98,48 @@ export class HTMLText extends Sprite
 
         if (style.wordWrap)
         {
-            css += 'word-wrap:break-word;';
+            css += `word-wrap:${style.breakWords ? 'break-all' : 'break-word'};`;
             css += `width:${style.wordWrapWidth}px;`;
         }
 
         if (style.strokeThickness)
         {
+            let { stroke } = style;
+
+            if (typeof color === 'number')
+            {
+                stroke = hex2string(stroke);
+            }
+
             css += `-webkit-text-stroke-width: ${style.strokeThickness}px;`;
-            css += `-webkit-text-stroke-color: ${style.stroke};`;
+            css += `-webkit-text-stroke-color: ${stroke};`;
             css += `text-stroke-width: ${style.strokeThickness}px;`;
-            css += `text-stroke-color: ${style.stroke};`;
+            css += `text-stroke-color: ${stroke};`;
+            css += 'paint-order: stroke;';
         }
 
         if (style.dropShadow)
         {
-            const x = Math.round(Math.cos(style.dropShadowAngle) * style.dropShadowDistance);
-            const y = Math.round(Math.sin(style.dropShadowAngle) * style.dropShadowDistance);
+            const { dropShadowAngle, dropShadowDistance, dropShadowBlur, dropShadowColor, dropShadowAlpha } = style;
+            const x = Math.round(Math.cos(dropShadowAngle) * dropShadowDistance);
+            const y = Math.round(Math.sin(dropShadowAngle) * dropShadowDistance);
+            let color = dropShadowColor;
 
-            css += `text-shadow: ${x}px ${y}px ${style.dropShadowBlur}px ${style.dropShadowColor};`;
+            // Convert numbers to hex strings
+            if (typeof color === 'number')
+            {
+                color = hex2string(color);
+            }
+
+            // Check if we should apply alpha
+            if (color.charAt(0) === '#' && dropShadowAlpha < 1)
+            {
+                const [r, g, b] = hex2rgb(parseInt(color.replace('#', ''), 16));
+
+                color = `rgba(${r * 255 | 0}, ${g * 255 | 0}, ${b * 255 | 0}, ${dropShadowAlpha})`;
+            }
+
+            css += `text-shadow: ${x}px ${y}px ${dropShadowBlur}px ${color};`;
         }
 
         const svg = `
@@ -178,11 +197,14 @@ export class HTMLText extends Sprite
 
         if (style.trim)
         {
-            const trimmed = trimCanvas(canvas);
+            const { width, height, data } = trimCanvas(canvas);
 
-            canvas.width = trimmed.width;
-            canvas.height = trimmed.height;
-            context.putImageData(trimmed.data, 0, 0);
+            if (data)
+            {
+                canvas.width = width;
+                canvas.height = height;
+                context.putImageData(data, 0, 0);
+            }
         }
 
         const padding = style.trim ? 0 : style.padding;
@@ -286,6 +308,10 @@ export class HTMLText extends Sprite
         this.canvas.width = this.canvas.height = 0; // Safari hack
         this.canvas = null;
         this._style = null;
+        this._parser = null;
+        this._image.onload = null;
+        this._image.src = "";
+        this._image = null;
     }
 
     /**

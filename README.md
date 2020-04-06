@@ -7,8 +7,9 @@ An alternative to `PIXI.Text` that works with PixiJS v5 (both WebGL and Canvas),
 
 Disadvantages:
 
-* Performance is on-par with `PIXI.Text`, that is to say slow for redrawing
-* Only works with browsers that support [btoa](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/btoa), e.g., no IE 9 support
+* Unlike `PIXI.Text`, HTMLText rendering will vary slightly between platforms and browsers. HTMLText uses SVG/DOM to render text and not Context2D's fillText like `PIXI.Text`.
+* Performance and memory usage is on-par with `PIXI.Text` (that is to say, slow and heavy)
+* Only works with browsers that support [`btoa`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/btoa), e.g., no IE 9 support
 
 ## Install
 
@@ -32,6 +33,46 @@ const style = new TextStyle({ fontSize: 20 });
 // Make a new HTMLText object
 const text = new HTMLText("Hello World", style);
 ```
+
+## Styles
+
+Not all styles and values are compatible between PIXI.Text, mainly because Text is rendered using a DOM element instead of Context2D's fillText API.
+
+**Supported**
+
+* `fill`
+* `fontFamily`
+* `fontSize`
+* `fontWeight`
+* `fontStyle`
+* `fontVariant`
+* `letterSpacing` †
+* `align` (also supports "justify")
+* `padding`
+* `breakWords`
+* `lineHeight` †
+* `wordWrap`
+* `wordWrapWidth`
+* `strokeThickness` ‡
+* `dropShadow` ‡
+* `dropShadowAngle`
+* `dropShadowDistance`
+* `dropShadowBlur` ‡
+* `dropShadowColor`
+* `trim`
+* `stroke`
+* `strokeThickness`
+
+† _Values may differ slightly from PIXI.Text rendering._
+‡ _Appearance may differ slightly between different browsers._
+
+**Unsupported**
+
+* `fillGradientStops`
+* `fillGradientType`
+* `miterLimit`
+* `textBaseline`
+* `whiteSpace`
 
 ## Example
 

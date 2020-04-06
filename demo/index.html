@@ -40,12 +40,16 @@
       document.getElementById('app').appendChild(app.view);
 
       const style = new PIXI.TextStyle({
-        fontSize: 20,
+        fontSize: 40,
         align: 'justify',
         letterSpacing: 3,
         wordWrap: true,
-        wordWrapWidth: 400,
-        lineHeight: 48
+        wordWrapWidth: 600,
+        lineHeight: 48,
+        dropShadow: true,
+        dropShadowDistance: 1,
+        dropShadowAngle: Math.PI / 2,
+        dropShadowColor: '#cccccc',
       });
 
       const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur adipiscing elit</b>. Phasellus porta nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
