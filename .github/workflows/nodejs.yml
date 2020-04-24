@@ -1,0 +1,24 @@
+name: Node.js CI
+on:
+  push:
+    branches: [ '*' ]
+  release:
+    types: [ 'created' ]
+  pull_request:
+    branches: [ '*' ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 10.x, 12.x ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install dependencies
+      run: npm ci
+    - name: Built and Test
+      run: npm test

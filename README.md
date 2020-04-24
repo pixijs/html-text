@@ -1,5 +1,7 @@
 # PixiJS HTMLText
 
+[![Node.js CI](https://github.com/pixijs/pixi-html-text/workflows/Node.js%20CI/badge.svg)](https://github.com/pixijs/pixi-html-text/actions?query=workflow%3A%22Node.js+CI%22)
+
 An alternative to `PIXI.Text` that works with PixiJS v5 (both WebGL and Canvas), however, it has some advantages:
 
 * Supports HTML tags for styling such as `<strong>`, or `<em>`, as well as `<span style="">`

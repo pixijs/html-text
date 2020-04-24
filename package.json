@@ -14,6 +14,7 @@
     "build:dev": "rollup -c",
     "demo": "run-p watch serve",
     "lint": "eslint src",
+    "test": "run-s lint build",
     "postversion": "git push && git push --tags",
     "prepublish": "run-s lint clean build",
     "docs": "jsdoc -c jsdoc.json -R README.md",
