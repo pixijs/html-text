@@ -41,7 +41,7 @@ export default {
             banner,
         },
         {
-            file: pkg.browser,
+            file: pkg.bundle,
             format: 'iife',
             name,
             footer: `Object.assign(PIXI, ${name});`,

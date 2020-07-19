@@ -4,7 +4,7 @@
   "description": "Multi-Style Text Rendering Plugin for PixiJS",
   "main": "dist/html-text.cjs.js",
   "module": "dist/html-text.es.js",
-  "browser": "dist/html-text.js",
+  "bundle": "dist/html-text.js",
   "types": "index.d.ts",
   "scripts": {
     "serve": "http-server . -o demo",
