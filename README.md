@@ -12,6 +12,7 @@ Disadvantages:
 * Unlike `PIXI.Text`, HTMLText rendering will vary slightly between platforms and browsers. HTMLText uses SVG/DOM to render text and not Context2D's fillText like `PIXI.Text`.
 * Performance and memory usage is on-par with `PIXI.Text` (that is to say, slow and heavy)
 * Only works with browsers that support [`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject), i.e., no Internet Explorer support.
+* Only supports [web-safe fonts](https://www.w3schools.com/cssref/css_websafe_fonts.asp) for the `fontFamily` attribute.
 
 ## Install
 
@@ -43,7 +44,7 @@ Not all styles and values are compatible between PIXI.Text, mainly because Text 
 **Supported**
 
 * `fill`
-* `fontFamily`
+* `fontFamily` (web-safe fonts only)
 * `fontSize`
 * `fontWeight`
 * `fontStyle`
