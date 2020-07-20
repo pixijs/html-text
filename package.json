@@ -1,6 +1,6 @@
 {
   "name": "@pixi/text-html",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-Style Text Rendering Plugin for PixiJS",
   "main": "dist/html-text.cjs.js",
   "module": "dist/html-text.es.js",
