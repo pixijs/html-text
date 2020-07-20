@@ -24,11 +24,6 @@ export class HTMLText extends Sprite
      */
     constructor(text = '', style = {}, canvas)
     {
-        if (typeof btoa === 'undefined')
-        {
-            throw new Error('Your browser doesn\'t support base64 conversions.');
-        }
-
         canvas = canvas || document.createElement('canvas');
 
         canvas.width = 3;
@@ -170,7 +165,7 @@ export class HTMLText extends Sprite
             const image = this._image;
 
             this._loading = true;
-            image.src = `data:image/svg+xml;base64,${btoa(svg)}`;
+            image.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
             image.onload = () =>
             {
                 context.drawImage(
