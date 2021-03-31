@@ -21,11 +21,11 @@
     "predeploy": "run-s build docs",
     "deploy": "gh-pages -d . -s \"{demo,docs,dist}/**\""
   },
-  "homepage": "https://pixijs.io/pixi-html-text/docs/",
-  "bugs": "https://github.com/pixijs/pixi-html-text/issues",
+  "homepage": "https://pixijs.io/html-text/docs/",
+  "bugs": "https://github.com/pixijs/html-text/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pixijs/pixi-html-text.git"
+    "url": "https://github.com/pixijs/html-text.git"
   },
   "publishConfig": {
     "access": "public"
