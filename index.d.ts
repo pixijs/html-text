@@ -7,6 +7,9 @@ declare namespace PIXI {
         readonly context:CanvasRenderingContext2D;
         text:string;
         style:PIXI.TextStyle;
+        resolution: number;
+        width: number;
+        height: number;
         updateText(respectDirty?:boolean): void;
     }
 }
