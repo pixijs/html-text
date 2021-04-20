@@ -37,6 +37,8 @@ const style = new TextStyle({ fontSize: 20 });
 const text = new HTMLText("Hello World", style);
 ```
 
+_**Important:** Because the HTMLText object takes a raw HTML string, it's represents a potential vector for [XSS](https://en.wikipedia.org/wiki/Cross-site_scripting), it's strongly encourage you santize input especially if you're accepting user-strings._
+
 ## Styles
 
 Not all styles and values are compatible between PIXI.Text, mainly because Text is rendered using a DOM element instead of Context2D's fillText API.
