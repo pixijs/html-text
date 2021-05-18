@@ -52,9 +52,14 @@
         dropShadowColor: '#cccccc',
       });
 
-      const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur adipiscing elit</b>. Phasellus porta nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
+      const text = '<p>Lorem <a href="#">ipsum</a> dolor sit amet, &#x1F680; <b>consectetur adipiscing elit</b>.</p> <p>Phasellus porta nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.</p>';
+      const cssStyle = {
+        'p': 'margin-bottom: 0;margin-top: 30px;',
+        'p:nth-of-type(1)': 'margin: 0;',
+        'a': 'color: aquamarine;'
+      }
 
-      const text2 = new PIXI.HTMLText(text, style);
+      const text2 = new PIXI.HTMLText(text, style, null, cssStyle);
       text2.texture.baseTexture.on('update', () => app.render());
       text2.y = 20;
       text2.x = 20;
