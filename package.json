@@ -16,7 +16,9 @@
     "lint": "eslint src",
     "test": "run-s lint build",
     "postversion": "git push && git push --tags",
-    "prepublish": "run-s lint clean build",
+    "prepublishOnly": "run-s lint clean build",
+    "prepack": "clean-package",
+    "postpack": "clean-package restore",
     "docs": "jsdoc -c jsdoc.json -R README.md",
     "predeploy": "run-s build docs",
     "deploy": "gh-pages -d . -s \"{demo,docs,dist}/**\""
@@ -29,6 +31,14 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "clean-package": {
+    "indent": 2,
+    "remove": [
+      "clean-package",
+      "devDependencies",
+      "scripts"
+    ]
   },
   "keywords": [],
   "files": [
@@ -46,9 +56,16 @@
     "@pixi/utils": "^6.0.0"
   },
   "devDependencies": {
+    "@pixi/core": "^6.0.0",
     "@pixi/eslint-config": "^1.0.1",
     "@pixi/jsdoc-template": "^2.6.0",
+    "@pixi/math": "^6.0.0",
+    "@pixi/settings": "^6.0.0",
+    "@pixi/sprite": "^6.0.0",
+    "@pixi/text": "^6.0.0",
+    "@pixi/utils": "^6.0.0",
     "@typescript-eslint/parser": "^2.26.0",
+    "clean-package": "^1.0.1",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "gh-pages": "^2.2.0",
@@ -59,13 +76,6 @@
     "rollup": "^2.3.3",
     "rollup-plugin-buble": "^0.19.8",
     "rollup-plugin-terser": "^5.3.0",
-    "typescript": "^3.8.3",
-    "@pixi/core": "^6.0.0",
-    "@pixi/math": "^6.0.0",
-    "@pixi/settings": "^6.0.0",
-    "@pixi/sprite": "^6.0.0",
-    "@pixi/text": "^6.0.0",
-    "@pixi/utils": "^6.0.0"
-  },
-  "dependencies": {}
+    "typescript": "^3.8.3"
+  }
 }
