@@ -1,19 +1,12 @@
-/// <reference types="pixi.js" />
+import { Sprite } from '@pixi/sprite';
+import { TextStyle } from '@pixi/text';
 
-declare namespace PIXI {
-    export class HTMLText extends PIXI.Sprite {
-        constructor(text?:string, style?:PIXI.TextStyle, canvas?:HTMLCanvasElement);
-        readonly canvas:HTMLCanvasElement;
-        readonly context:CanvasRenderingContext2D;
-        text:string;
-        style:PIXI.TextStyle;
-        resolution: number;
-        width: number;
-        height: number;
-        updateText(respectDirty?:boolean): void;
-    }
-}
-
-declare module "@pixi/text-html" {
-    export import HTMLText = PIXI.HTMLText;
+export class HTMLText extends Sprite {
+    constructor(text?:string, style?:TextStyle, canvas?:HTMLCanvasElement);
+    readonly canvas:HTMLCanvasElement;
+    readonly context:CanvasRenderingContext2D;
+    text:string;
+    style:TextStyle;
+    resolution: number;
+    updateText(respectDirty?:boolean): void;
 }
