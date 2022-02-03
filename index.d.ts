@@ -6,7 +6,7 @@ export class HTMLText extends Sprite {
     readonly canvas:HTMLCanvasElement;
     readonly context:CanvasRenderingContext2D;
     text:string;
-    style:Partial<TextStyle>;
+    style:TextStyle;
     resolution: number;
     updateText(respectDirty?:boolean): void;
 }
