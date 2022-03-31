@@ -21,7 +21,7 @@ export class HTMLText extends Sprite
      * @param {PIXI.TextStyle} [style] - Style settings, not all TextStyle options are supported.
      * @param {HTMLCanvasElement} [canvas] - Optional canvas to use for rendering.
      *.       if undefined, will generate it's own canvas using createElement.
-     * @param {object<string, string>} [cssStyle] - CSS Style settings for HTML elements in text
+     * @param {object<string, object<string, unknown>>} [cssStyle] - CSS Style settings for HTML elements in text
      *        Where key is selector, value is styles
      */
     constructor(text = '', style = {}, canvas, cssStyle = {})
@@ -198,13 +198,30 @@ export class HTMLText extends Sprite
     get stringCssStyle()
     {
         let css = '';
-        for (let k in this._cssStyle)
+        const formatCss = (cssObject) =>
         {
-            const v = this._cssStyle[k];
+            let cssStr = '';
+
+            for (const key in cssObject) {
+                // eslint-disable-next-line no-prototype-builtins
+                if (cssObject.hasOwnProperty(key)) {
+                    cssStr += `${key}:${cssObject[key]};`;
+                }
+            }
+
+            return cssStr;
+        };
+
+        for (const k in this._cssStyle)
+        {
+            let selector = k;
+            const cssObj = this._cssStyle[selector];
+
             // When the key is `&`, it means to select the `.pixi-html_text` element
-            if (/^&/.test(k)) k = k.replace('&', '');
-            css += `.pixi-html_text ${k} {${v}}`;
+            if (/^&/.test(selector)) selector = selector.replace('&', '');
+            css += `.pixi-html_text ${selector} {${formatCss(cssObj)}}`;
         }
+
         return css;
     }
     /**

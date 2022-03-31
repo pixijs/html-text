@@ -54,12 +54,30 @@
 
       const text = '<p>Lorem <a href="#">ipsum</a> dolor sit amet, &#x1F680; <b>consectetur adipiscing elit</b>.</p> <p>Phasellus porta nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.</p>';
       const cssStyle = {
-        '&': 'position: relative; line-height: 48px; height: 96px; overflow: hidden;',
+        '&': {
+          position: 'relative',
+          'line-height': '48px',
+          height: '96px',
+          overflow: 'hidden',
+        },
         // Multi-line text overflow ellipsis through pseudo-elements
-        '&::after': 'content: "..."; position: absolute; bottom: 0;right: 0; background: #999999;',
-        'p': 'margin-bottom: 0;margin-top: 30px;',
-        'p:nth-of-type(1)': 'margin: 0;',
-        'a': 'color: aquamarine;'
+        '&::after': {
+          content: '"..."',
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          background: '#999999',
+        },
+        'p': {
+          'margin-bottom': 0,
+          'margin-top': '30px'
+        },
+        'p:nth-of-type(1)': {
+          margin: 0,
+        },
+        'a': {
+          color: 'aquamarine'
+        }
       }
 
       const text2 = new PIXI.HTMLText(text, style, null, cssStyle);
@@ -75,6 +93,8 @@
         .drawShape(text2.getBounds());
 
       app.stage.addChild(rect, text2);
+      // 'ipsum' will show white background, aquamarine color text
+      text2.cssStyle['a'].background = '#fff';
     </script>
   </body>
 </html>
