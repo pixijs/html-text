@@ -202,9 +202,11 @@ export class HTMLText extends Sprite
         {
             let cssStr = '';
 
-            for (const key in cssObject) {
+            for (const key in cssObject)
+            {
                 // eslint-disable-next-line no-prototype-builtins
-                if (cssObject.hasOwnProperty(key)) {
+                if (cssObject.hasOwnProperty(key))
+                {
                     cssStr += `${key}:${cssObject[key]};`;
                 }
             }
@@ -218,7 +220,7 @@ export class HTMLText extends Sprite
             const cssObj = this._cssStyle[selector];
 
             // When the key is `&`, it means to select the `.pixi-html_text` element
-            if (/^&/.test(selector)) selector = selector.replace('&', '');
+            if ((/^&/).test(selector)) selector = selector.replace('&', '');
             css += `.pixi-html_text ${selector} {${formatCss(cssObj)}}`;
         }
 
@@ -422,7 +424,7 @@ export class HTMLText extends Sprite
 
     /**
      * The CSS style to render with text.
-     * @member {string}
+     * @member {object}
      */
     get cssStyle()
     {
