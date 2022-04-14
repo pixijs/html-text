@@ -52,7 +52,7 @@
         dropShadowColor: '#cccccc',
       });
 
-      const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur adipiscing elit</b>. Phasellus porta nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
+      const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur &nbsp; adipiscing elit</b>. <br> Phasellus porta&nbsp;nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
 
       const text2 = new PIXI.HTMLText(text, style);
       text2.texture.baseTexture.on('update', () => app.render());
