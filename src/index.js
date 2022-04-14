@@ -426,9 +426,9 @@ export class HTMLText extends Sprite
     sanitiseText(text){
         // Sanitise text - replace <br> with <br/>, &nbsp; with &#160;
         // See discussion here: https://www.sitepoint.com/community/t/xhtml-1-0-transitional-xml-parsing-error-entity-nbsp-not-defined/3392/3
-        text = text.replace(/<br>/g,'<br/>');
-        text = text.replace(/<hr>/g,'<hr/>');
-        text = text.replace(/&nbsp;/g,'&#160;');
+        text = text.replace(/<br>/gi,'<br/>');
+        text = text.replace(/<hr>/gi,'<hr/>');
+        text = text.replace(/&nbsp;/gi,'&#160;');
         return text;
     }
 }
