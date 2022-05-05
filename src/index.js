@@ -423,12 +423,14 @@ export class HTMLText extends Sprite
         this.dirty = true;
     }
 
-    sanitiseText(text){
+    sanitiseText(text)
+    {
         // Sanitise text - replace <br> with <br/>, &nbsp; with &#160;
-        // See discussion here: https://www.sitepoint.com/community/t/xhtml-1-0-transitional-xml-parsing-error-entity-nbsp-not-defined/3392/3
-        text = text.replace(/<br>/gi,'<br/>');
-        text = text.replace(/<hr>/gi,'<hr/>');
-        text = text.replace(/&nbsp;/gi,'&#160;');
-        return text;
+        // See discussion here:
+        // https://www.sitepoint.com/community/t/xhtml-1-0-transitional-xml-parsing-error-entity-nbsp-not-defined/3392/3
+        return text
+            .replace(/<br>/gi, '<br/>')
+            .replace(/<hr>/gi, '<hr/>')
+            .replace(/&nbsp;/gi, '&#160;');
     }
 }
