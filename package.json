@@ -21,7 +21,7 @@
     "postpack": "clean-package restore",
     "docs": "jsdoc -c jsdoc.json -R README.md",
     "predeploy": "run-s build docs",
-    "deploy": "gh-pages -d . -s \"{demo,docs,dist}/**\""
+    "deploy": "gh-pages -f -d . -s \"{demo,docs,dist}/**\""
   },
   "homepage": "https://pixijs.io/html-text/docs/",
   "bugs": "https://github.com/pixijs/html-text/issues",
@@ -68,7 +68,7 @@
     "clean-package": "^1.0.1",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
-    "gh-pages": "^2.2.0",
+    "gh-pages": "^3.2.3",
     "http-server": "^0.12.1",
     "jsdoc": "^3.6.3",
     "npm-run-all": "^4.1.5",
