@@ -157,9 +157,6 @@ export class HTMLText extends Sprite
         canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)) * resolution);
         canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)) * resolution);
 
-        context.scale(resolution, resolution);
-        context.clearRect(0, 0, canvas.width, canvas.height);
-
         if (!this._loading)
         {
             const image = this._image;
@@ -168,17 +165,17 @@ export class HTMLText extends Sprite
             image.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
             image.onload = () =>
             {
+                context.scale(resolution, resolution);
+                context.clearRect(0, 0, canvas.width, canvas.height);
                 context.drawImage(
                     image,
                     0, 0, width, height,
                     0, 0, width, height,
                 );
                 image.onload = undefined;
-                image.src = '';
                 this._loading = false;
                 this.updateTexture();
             };
-            this.updateTexture();
         }
     }
 
