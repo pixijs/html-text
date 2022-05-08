@@ -21,8 +21,10 @@ export class HTMLText extends Sprite
      * @param {PIXI.TextStyle} [style] - Style settings, not all TextStyle options are supported.
      * @param {HTMLCanvasElement} [canvas] - Optional canvas to use for rendering.
      *.       if undefined, will generate it's own canvas using createElement.
+     * @param {object<string, object<string, unknown>>} [cssStyle] - CSS Style settings for HTML elements in text
+     *        Where key is selector, value is styles
      */
-    constructor(text = '', style = {}, canvas)
+    constructor(text = '', style = {}, canvas, cssStyle = {})
     {
         canvas = canvas || document.createElement('canvas');
 
@@ -45,9 +47,11 @@ export class HTMLText extends Sprite
         this._autoResolution = true;
         this._text = null;
         this._style = null;
+        this._cssStyle = null;
         this._loading = false;
         this.text = text;
         this.style = style;
+        this.cssStyle = cssStyle;
         this.localStyleID = -1;
     }
 
@@ -140,10 +144,15 @@ export class HTMLText extends Sprite
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048">
                 <foreignObject width="100%" height="100%">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="${css}">${this._text}</div>
+                    <div xmlns="http://www.w3.org/1999/xhtml" class="pixi-html_text" style="${css}">
+                    ${this._text}
+                        <style>
+                            ${this.stringCssStyle}
+                        </style>
+                    </div>
                 </foreignObject>
             </svg>
-       `;
+        `;
 
         // Used to measure to D
         const template = this._parser.parseFromString(svg, 'text/xml');
@@ -178,7 +187,42 @@ export class HTMLText extends Sprite
             };
         }
     }
+    /**
+     * Convert cssStyle object to css string, key is selector, value is css style
+     * When the key is `&`, it means to select the `.pixi-html_text` element
+     * Supports pseudo-element selectors, such as `&::after`
+     */
+    get stringCssStyle()
+    {
+        let css = '';
+        const formatCss = (cssObject) =>
+        {
+            let cssStr = '';
 
+            for (const key in cssObject)
+            {
+                // eslint-disable-next-line no-prototype-builtins
+                if (cssObject.hasOwnProperty(key))
+                {
+                    cssStr += `${key}:${cssObject[key]};`;
+                }
+            }
+
+            return cssStr;
+        };
+
+        for (const k in this._cssStyle)
+        {
+            let selector = k;
+            const cssObj = this._cssStyle[selector];
+
+            // When the key is `&`, it means to select the `.pixi-html_text` element
+            if ((/^&/).test(selector)) selector = selector.replace('&', '');
+            css += `.pixi-html_text ${selector} {${formatCss(cssObj)}}`;
+        }
+
+        return css;
+    }
     /**
      * Update the texture resource.
      * @private
@@ -300,6 +344,7 @@ export class HTMLText extends Sprite
         this.canvas.width = this.canvas.height = 0; // Safari hack
         this.canvas = null;
         this._style = null;
+        this._cssStyle = null;
         this._parser = null;
         this._image.onload = null;
         this._image.src = '';
@@ -371,6 +416,21 @@ export class HTMLText extends Sprite
         }
 
         this.localStyleID = -1;
+        this.dirty = true;
+    }
+
+    /**
+     * The CSS style to render with text.
+     * @member {object}
+     */
+    get cssStyle()
+    {
+        return this._cssStyle;
+    }
+
+    set cssStyle(style) // eslint-disable-line require-jsdoc
+    {
+        this._cssStyle = style || {};
         this.dirty = true;
     }
 
