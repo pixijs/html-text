@@ -149,6 +149,7 @@ export class HTMLText extends Sprite
         }
 
         const dom = this._domElement;
+
         Object.assign(dom, {
             innerHTML: this._text,
             style: css,
@@ -157,6 +158,7 @@ export class HTMLText extends Sprite
         // Measure the contents
         document.body.appendChild(dom);
         const { width, height } = dom.getBoundingClientRect();
+
         document.body.removeChild(dom);
 
         // Assemble the svg output
@@ -171,6 +173,7 @@ export class HTMLText extends Sprite
         {
             const image = this._image;
             const svgURL = new XMLSerializer().serializeToString(this._svgRoot);
+
             this._loading = true;
             image.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
             image.onload = () =>
