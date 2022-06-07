@@ -36,7 +36,18 @@ export class HTMLText extends Sprite
 
         super(texture);
 
-        this._parser = new DOMParser();
+        const ns = 'http://www.w3.org/2000/svg';
+        const svgRoot = document.createElementNS(ns, 'svg');
+        const foreignObject = document.createElementNS(ns, 'foreignObject');
+        const domElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+
+        foreignObject.setAttribute('height', '100%');
+        foreignObject.setAttribute('width', '100%');
+        svgRoot.appendChild(foreignObject);
+
+        this._domElement = domElement;
+        this._svgRoot = svgRoot;
+        this._foreignObject = foreignObject;
         this._image = new Image();
 
         this.canvas = canvas;
@@ -137,22 +148,21 @@ export class HTMLText extends Sprite
             css += `text-shadow: ${x}px ${y}px ${dropShadowBlur}px ${color};`;
         }
 
-        const svg = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048">
-                <foreignObject width="100%" height="100%">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="${css}">${this._text}</div>
-                </foreignObject>
-            </svg>
-       `;
+        const dom = this._domElement;
+        Object.assign(dom, {
+            innerHTML: this._text,
+            style: css,
+        });
 
-        // Used to measure to D
-        const template = this._parser.parseFromString(svg, 'text/xml');
-        const div = template.firstChild.querySelector('div');
+        // Measure the contents
+        document.body.appendChild(dom);
+        const { width, height } = dom.getBoundingClientRect();
+        document.body.removeChild(dom);
 
-        document.body.appendChild(div);
-        const { width, height } = div.getBoundingClientRect();
-
-        document.body.removeChild(div);
+        // Assemble the svg output
+        this._foreignObject.appendChild(dom);
+        this._svgRoot.setAttribute('width', width);
+        this._svgRoot.setAttribute('height', height);
 
         canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)) * resolution);
         canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)) * resolution);
@@ -160,9 +170,9 @@ export class HTMLText extends Sprite
         if (!this._loading)
         {
             const image = this._image;
-
+            const svgURL = new XMLSerializer().serializeToString(this._svgRoot);
             this._loading = true;
-            image.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+            image.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
             image.onload = () =>
             {
                 context.scale(resolution, resolution);
@@ -172,6 +182,7 @@ export class HTMLText extends Sprite
                     0, 0, width, height,
                     0, 0, width, height,
                 );
+                image.src = '';
                 image.onload = undefined;
                 this._loading = false;
                 this.updateTexture();
@@ -300,7 +311,9 @@ export class HTMLText extends Sprite
         this.canvas.width = this.canvas.height = 0; // Safari hack
         this.canvas = null;
         this._style = null;
-        this._parser = null;
+        this._svgRoot = null;
+        this._domElement = null;
+        this._foreignObject = null;
         this._image.onload = null;
         this._image.src = '';
         this._image = null;
