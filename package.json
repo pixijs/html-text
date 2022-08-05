@@ -3,9 +3,16 @@
   "version": "2.0.2",
   "description": "Multi-Style Text Rendering Plugin for PixiJS",
   "main": "dist/html-text.cjs.js",
-  "module": "dist/html-text.es.js",
+  "module": "dist/html-text.es.mjs",
   "bundle": "dist/html-text.js",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/html-text.es.mjs",
+      "require": "./dist/html-text.cjs.js",
+      "types": "./index.d.ts"
+    }
+  },
   "scripts": {
     "serve": "http-server . -o demo",
     "watch": "rollup -cw",
