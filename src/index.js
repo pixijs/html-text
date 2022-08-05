@@ -62,40 +62,31 @@ export class HTMLText extends Sprite
         this.localStyleID = -1;
     }
 
+    
     /**
-     * Manually refresh the text.
+     * Measure text width and height
      * @public
-     * @param {boolean} [respectDirty=true] - Whether to abort updating the
-     *        text if the Text isn't dirty and the function is called.
+     * @returns {width, height} 
      */
-    updateText(respectDirty)
+    measureText()
     {
-        const { style, canvas, context, resolution } = this;
 
-        // check if style has changed..
-        if (this.localStyleID !== style.styleID)
-        {
-            this.dirty = true;
-            this.localStyleID = style.styleID;
-        }
+        const style = this.style;
+        const dom = this._domElement;
 
-        if (!this.dirty && respectDirty)
-        {
-            return;
-        }
 
         let css = `
-            display:inline-block;
-            color:${style.fill};
-            font-size: ${style.fontSize}px;
-            font-family:${style.fontFamily};
-            font-weight:${style.fontWeight};
-            font-style:${style.fontStyle};
-            font-variant:${style.fontVariant};
-            letter-spacing:${style.letterSpacing}px;
-            text-align:${style.align};
-            padding:${style.padding}px;
-        `;
+        display:inline-block;
+        color:${style.fill};
+        font-size: ${style.fontSize}px;
+        font-family:${style.fontFamily};
+        font-weight:${style.fontWeight};
+        font-style:${style.fontStyle};
+        font-variant:${style.fontVariant};
+        letter-spacing:${style.letterSpacing}px;
+        text-align:${style.align};
+        padding:${style.padding}px;
+    `;
 
         if (style.lineHeight)
         {
@@ -148,8 +139,6 @@ export class HTMLText extends Sprite
             css += `text-shadow: ${x}px ${y}px ${dropShadowBlur}px ${color};`;
         }
 
-        const dom = this._domElement;
-
         Object.assign(dom, {
             innerHTML: this._text,
             style: css,
@@ -160,6 +149,34 @@ export class HTMLText extends Sprite
         const { width, height } = dom.getBoundingClientRect();
 
         document.body.removeChild(dom);
+        return { width, height };
+    }
+
+    /**
+     * Manually refresh the text.
+     * @public
+     * @param {boolean} [respectDirty=true] - Whether to abort updating the
+     *        text if the Text isn't dirty and the function is called.
+     */
+    updateText(respectDirty)
+    {
+        const { style, canvas, context, resolution } = this;
+
+        // check if style has changed..
+        if (this.localStyleID !== style.styleID)
+        {
+            this.dirty = true;
+            this.localStyleID = style.styleID;
+        }
+
+        if (!this.dirty && respectDirty)
+        {
+            return;
+        }
+ 
+        const dom = this._domElement;
+      
+        const { width, height } = this.measureText(); 
 
         // Assemble the svg output
         this._foreignObject.appendChild(dom);

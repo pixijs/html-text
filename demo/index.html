@@ -55,6 +55,7 @@
       const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur &nbsp; adipiscing elit</b>. <br> Phasellus porta&nbsp;nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
 
       const text2 = new PIXI.HTMLText(text, style);
+      console.log("Text measures:", text2.measureText());
       text2.texture.baseTexture.on('update', () => app.render());
       text2.y = 20;
       text2.x = 20;
