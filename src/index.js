@@ -330,7 +330,7 @@ export class HTMLText extends Sprite
     {
         this.updateText(true);
 
-        return Math.abs(this.scale.x) * this._texture.orig.width;
+        return Math.abs(this.scale.x) * this.canvas.width;
     }
 
     set width(value) // eslint-disable-line require-jsdoc
@@ -339,7 +339,7 @@ export class HTMLText extends Sprite
 
         const s = sign(this.scale.x) || 1;
 
-        this.scale.x = s * value / this._texture.orig.width;
+        this.scale.x = s * value / this.canvas.width;
         this._width = value;
     }
 
@@ -351,7 +351,7 @@ export class HTMLText extends Sprite
     {
         this.updateText(true);
 
-        return Math.abs(this.scale.y) * this._texture.orig.height;
+        return Math.abs(this.scale.y) * this.canvas.height;
     }
 
     set height(value) // eslint-disable-line require-jsdoc
@@ -360,7 +360,7 @@ export class HTMLText extends Sprite
 
         const s = sign(this.scale.y) || 1;
 
-        this.scale.y = s * value / this._texture.orig.height;
+        this.scale.y = s * value / this.canvas.height;
         this._height = value;
     }
 
