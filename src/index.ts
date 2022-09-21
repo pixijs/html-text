@@ -1,28 +1,40 @@
 import { Sprite } from '@pixi/sprite';
-import { settings } from '@pixi/settings';
-import { Texture } from '@pixi/core';
-import { Rectangle } from '@pixi/math';
-import { trimCanvas, sign, hex2rgb, hex2string } from '@pixi/utils';
+import { Texture, Rectangle, settings, utils } from '@pixi/core';
 import { TextStyle } from '@pixi/text';
+import type { ITextStyle } from '@pixi/text';
+import type { Renderer, IRenderer } from '@pixi/core';
+import type { IDestroyOptions } from '@pixi/display';
 
 /**
- * Text display object that support multi-style HTML text
+ * Text display object that support multi-style HTML text.
  * @class
- * @memberof PIXI
  * @extends PIXI.Sprite
  * @see {@link https://pixijs.download/dev/docs/PIXI.Sprite.html PIXI.Sprite}
  * @see {@link https://pixijs.download/dev/docs/PIXI.TextStyle.html PIXI.TextStyle}
  */
 export class HTMLText extends Sprite
 {
+    private _domElement: HTMLElement;
+    private _svgRoot: SVGSVGElement;
+    private _foreignObject: SVGForeignObjectElement;
+    private _image: HTMLImageElement;
+    private canvas: HTMLCanvasElement;
+    private context: CanvasRenderingContext2D;
+    private _resolution: number;
+    private _text: string | null = null;
+    private _style: TextStyle | null = null;
+    private _autoResolution = true;
+    private _loading = false;
+    private localStyleID = -1;
+    private dirty = false;
+
     /**
-     * @constructor
      * @param {string} [text] - Text contents
      * @param {PIXI.TextStyle} [style] - Style settings, not all TextStyle options are supported.
      * @param {HTMLCanvasElement} [canvas] - Optional canvas to use for rendering.
      *.       if undefined, will generate it's own canvas using createElement.
      */
-    constructor(text = '', style = {}, canvas)
+    constructor(text = '', style: TextStyle | Partial<ITextStyle> = {}, canvas: HTMLCanvasElement)
     {
         canvas = canvas || document.createElement('canvas');
 
@@ -51,26 +63,24 @@ export class HTMLText extends Sprite
         this._image = new Image();
 
         this.canvas = canvas;
-        this.context = this.canvas.getContext('2d');
+        this.context = canvas.getContext('2d') as CanvasRenderingContext2D;
         this._resolution = settings.RESOLUTION;
-        this._autoResolution = true;
-        this._text = null;
-        this._style = null;
-        this._loading = false;
         this.text = text;
         this.style = style;
-        this.localStyleID = -1;
     }
 
     /**
      * Manually refresh the text.
      * @public
-     * @param {boolean} [respectDirty=true] - Whether to abort updating the
+     * @param {boolean} respectDirty - Whether to abort updating the
      *        text if the Text isn't dirty and the function is called.
      */
-    updateText(respectDirty)
+    updateText(respectDirty = true): void
     {
-        const { style, canvas, context, resolution } = this;
+        const { style, resolution } = this;
+
+        const canvas = this.canvas as HTMLCanvasElement;
+        const context = this.context as CanvasRenderingContext2D;
 
         // check if style has changed..
         if (this.localStyleID !== style.styleID)
@@ -112,9 +122,9 @@ export class HTMLText extends Sprite
         {
             let { stroke } = style;
 
-            if (typeof color === 'number')
+            if (typeof stroke === 'number')
             {
-                stroke = hex2string(stroke);
+                stroke = utils.hex2string(stroke);
             }
 
             css += `-webkit-text-stroke-width: ${style.strokeThickness}px;`;
@@ -134,13 +144,13 @@ export class HTMLText extends Sprite
             // Convert numbers to hex strings
             if (typeof color === 'number')
             {
-                color = hex2string(color);
+                color = utils.hex2string(color);
             }
 
             // Check if we should apply alpha
             if (color.charAt(0) === '#' && dropShadowAlpha < 1)
             {
-                const [r, g, b] = hex2rgb(parseInt(color.replace('#', ''), 16));
+                const [r, g, b] = utils.hex2rgb(parseInt(color.replace('#', ''), 16));
 
                 color = `rgba(${r * 255 | 0}, ${g * 255 | 0}, ${b * 255 | 0}, ${dropShadowAlpha})`;
             }
@@ -163,8 +173,8 @@ export class HTMLText extends Sprite
 
         // Assemble the svg output
         this._foreignObject.appendChild(dom);
-        this._svgRoot.setAttribute('width', width);
-        this._svgRoot.setAttribute('height', height);
+        this._svgRoot.setAttribute('width', width.toString());
+        this._svgRoot.setAttribute('height', height.toString());
 
         canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)) * resolution);
         canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)) * resolution);
@@ -186,7 +196,7 @@ export class HTMLText extends Sprite
                     0, 0, width, height,
                 );
                 image.src = '';
-                image.onload = undefined;
+                image.onload = null;
                 this._loading = false;
                 this.updateTexture();
             };
@@ -199,11 +209,14 @@ export class HTMLText extends Sprite
      */
     updateTexture()
     {
-        const { canvas, context, style, texture, resolution } = this;
+        const { style, texture, resolution } = this;
+
+        const canvas = this.canvas as HTMLCanvasElement;
+        const context = this.context as CanvasRenderingContext2D;
 
         if (style.trim)
         {
-            const { width, height, data } = trimCanvas(canvas);
+            const { width, height, data } = utils.trimCanvas(canvas);
 
             if (data)
             {
@@ -238,7 +251,7 @@ export class HTMLText extends Sprite
      * @param {PIXI.Renderer} renderer - The renderer
      * @private
      */
-    _render(renderer)
+    _render(renderer: Renderer)
     {
         if (this._autoResolution && this._resolution !== renderer.resolution)
         {
@@ -257,7 +270,7 @@ export class HTMLText extends Sprite
      * @private
      * @param {PIXI.CanvasRenderer} renderer - The renderer
      */
-    _renderCanvas(renderer)
+    _renderCanvas(renderer: IRenderer)
     {
         if (this._autoResolution && this._resolution !== renderer.resolution)
         {
@@ -267,16 +280,18 @@ export class HTMLText extends Sprite
 
         this.updateText(true);
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         super._renderCanvas(renderer);
     }
 
     /**
      * Get the local bounds.
      *
-     * @param {PIXI.Rectangle} [rect]
+     * @param {PIXI.Rectangle} rect - Input rectangle.
      * @return {PIXI.Rectangle} Local bounds
      */
-    getLocalBounds(rect)
+    getLocalBounds(rect: Rectangle)
     {
         this.updateText(true);
 
@@ -288,7 +303,7 @@ export class HTMLText extends Sprite
         this.updateText(true);
         this.calculateVertices();
         // if we have already done this on THIS frame.
-        this._bounds.addQuad(this.vertexData);
+        (this as any)._bounds.addQuad(this.vertexData);
     }
 
     /**
@@ -302,24 +317,29 @@ export class HTMLText extends Sprite
 
     /**
      * Destroy this Text object. Don't use after calling.
-     * @param {boolean|object} [options=true] Same as Sprite destroy options.
+     * @param {boolean|object} options - Same as Sprite destroy options.
      */
-    destroy(options = true)
+    destroy(options?: boolean | IDestroyOptions | undefined)
     {
         super.destroy(options);
 
+        const forceClear: any = null;
+
         // make sure to reset the the context and canvas..
         // dont want this hanging around in memory!
-        this.context = null;
-        this.canvas.width = this.canvas.height = 0; // Safari hack
-        this.canvas = null;
-        this._style = null;
-        this._svgRoot = null;
-        this._domElement = null;
-        this._foreignObject = null;
+        this.context = null as any;
+        if (this.canvas)
+        {
+            this.canvas.width = this.canvas.height = 0; // Safari hack
+        }
+        this.canvas = forceClear;
+        this._style = forceClear;
+        this._svgRoot = forceClear;
+        this._domElement = forceClear;
+        this._foreignObject = forceClear;
         this._image.onload = null;
         this._image.src = '';
-        this._image = null;
+        this._image = forceClear;
     }
 
     /**
@@ -337,7 +357,7 @@ export class HTMLText extends Sprite
     {
         this.updateText(true);
 
-        const s = sign(this.scale.x) || 1;
+        const s = utils.sign(this.scale.x) || 1;
 
         this.scale.x = s * value / this.canvas.width / this.resolution;
         this._width = value;
@@ -358,7 +378,7 @@ export class HTMLText extends Sprite
     {
         this.updateText(true);
 
-        const s = sign(this.scale.y) || 1;
+        const s = utils.sign(this.scale.y) || 1;
 
         this.scale.y = s * value / this.canvas.height / this.resolution;
         this._height = value;
@@ -366,14 +386,14 @@ export class HTMLText extends Sprite
 
     /**
      * The base style to render with text.
-     * @member {PIXI.Style|object}
+     * @member {PIXI.TextStyle}
      */
-    get style()
+    get style(): TextStyle
     {
-        return this._style;
+        return this._style as TextStyle;
     }
 
-    set style(style) // eslint-disable-line require-jsdoc
+    set style(style: TextStyle | Partial<ITextStyle>) // eslint-disable-line require-jsdoc
     {
         style = style || {};
 
@@ -391,7 +411,9 @@ export class HTMLText extends Sprite
     }
 
     /**
-     * Contents of text. This can be HTML text.
+     * Contents of text. This can be HTML text and include tags.
+     * @example
+     * const text = new HTMLText('This is a <em>styled</em> text!');
      * @member {string}
      */
     get text()
@@ -418,12 +440,12 @@ export class HTMLText extends Sprite
      * @member {number}
      * @default 1
      */
-    get resolution()
+    get resolution(): number
     {
         return this._resolution;
     }
 
-    set resolution(value) // eslint-disable-line require-jsdoc
+    set resolution(value: number) // eslint-disable-line require-jsdoc
     {
         this._autoResolution = false;
 
@@ -436,7 +458,7 @@ export class HTMLText extends Sprite
         this.dirty = true;
     }
 
-    sanitiseText(text)
+    sanitiseText(text: string): string
     {
         // Sanitise text - replace <br> with <br/>, &nbsp; with &#160;
         // See discussion here:

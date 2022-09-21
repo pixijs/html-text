@@ -1,8 +1,6 @@
-import { terser } from 'rollup-plugin-terser';
-import bubel from 'rollup-plugin-buble';
-import pkg from './package.json';
+import esbuild from 'rollup-plugin-esbuild';
+import pkg from '../package.json';
 
-const prod = process.env.NODE_ENV === 'production'
 const compiled = (new Date()).toUTCString().replace(/GMT/g, 'UTC');
 const banner = [
     `/*!`,
@@ -17,15 +15,13 @@ const banner = [
 const name = '_pixi_htmltext';
 
 export default {
-    input: 'src/index.js',
+    input: 'src/index.ts',
     external: Object.keys(pkg.peerDependencies),
     plugins: [
-        bubel(),
-        ...prod ? [terser({
-            output: {
-                comments: (node, comment) => comment.line === 1
-            }
-        })] : []
+        esbuild({
+            target: 'es2017',
+            minify: process.env.NODE_ENV === 'production',
+        })
     ],
     output: [
         {
@@ -49,10 +45,7 @@ export default {
             banner,
             globals: {
                 '@pixi/sprite': 'PIXI',
-                '@pixi/settings': 'PIXI',
                 '@pixi/core': 'PIXI',
-                '@pixi/utils': 'PIXI.utils',
-                '@pixi/math': 'PIXI',
                 '@pixi/text': 'PIXI',
             }
         }
