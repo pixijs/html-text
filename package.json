@@ -10,7 +10,7 @@
     ".": {
       "import": "./dist/html-text.es.mjs",
       "require": "./dist/html-text.cjs.js",
-      "types": "./index.d.ts"
+      "types": "./dist/html-text.d.ts"
     }
   },
   "scripts": {
