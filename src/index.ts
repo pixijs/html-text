@@ -34,7 +34,7 @@ export class HTMLText extends Sprite
      * @param {HTMLCanvasElement} [canvas] - Optional canvas to use for rendering.
      *.       if undefined, will generate it's own canvas using createElement.
      */
-    constructor(text = '', style: TextStyle | Partial<ITextStyle> = {}, canvas: HTMLCanvasElement)
+    constructor(text = '', style: TextStyle | Partial<ITextStyle> = {}, canvas?: HTMLCanvasElement)
     {
         canvas = canvas || document.createElement('canvas');
 
