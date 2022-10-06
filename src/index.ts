@@ -229,8 +229,8 @@ export class HTMLText extends Sprite
         const padding = style.trim ? 0 : style.padding;
         const baseTexture = texture.baseTexture;
 
-        texture.trim.width = texture._frame.width = Math.ceil(canvas.width / resolution);
-        texture.trim.height = texture._frame.height = Math.ceil(canvas.height / resolution);
+        texture.trim.width = texture._frame.width = canvas.width / resolution;
+        texture.trim.height = texture._frame.height = canvas.height / resolution;
         texture.trim.x = -padding;
         texture.trim.y = -padding;
 
