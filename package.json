@@ -25,7 +25,7 @@
     "publish:patch": "npm version patch && run-s publish:skip",
     "publish:minor": "npm version minor && run-s publish:skip",
     "publish:major": "npm version major && run-s publish:skip",
-    "publish:skip": "npm publish",
+    "publish:skip": "npm publish --tag latest-2.x",
     "postpublish": "run-s deploy && git push && git push --tags",
     "prepublishOnly": "run-s lint clean build",
     "prepack": "clean-package",
