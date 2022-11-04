@@ -115,7 +115,7 @@ export class HTMLText extends Sprite
         if (style.wordWrap)
         {
             css += `word-wrap:${style.breakWords ? 'break-all' : 'break-word'};`;
-            css += `width:${style.wordWrapWidth}px;`;
+            css += `max-width:${style.wordWrapWidth}px;`;
         }
 
         if (style.strokeThickness)
