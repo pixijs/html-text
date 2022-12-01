@@ -11,8 +11,7 @@ Disadvantages:
 
 * Unlike `PIXI.Text`, HTMLText rendering will vary slightly between platforms and browsers. HTMLText uses SVG/DOM to render text and not Context2D's fillText like `PIXI.Text`.
 * Performance and memory usage is on-par with `PIXI.Text` (that is to say, slow and heavy)
-* Only works with browsers that support [`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject), i.e., no Internet Explorer support.
-* Only supports [web-safe fonts](https://www.w3schools.com/cssref/css_websafe_fonts.asp) for the `fontFamily` attribute.
+* Only works with browsers that support [`<foreignObject>`](https://caniuse.com/?search=foreignObject).
 
 ## Install
 
@@ -28,16 +27,32 @@ yarn add @pixi/text-html
 
 ```js
 import { HTMLText } from '@pixi/text-html';
-import { TextStyle } from '@pixi/text';
 
-// Can use the TextStyle class found in @pixi/text
-const style = new TextStyle({ fontSize: 20 });
-
-// Make a new HTMLText object
-const text = new HTMLText("Hello World", style);
+const text = new HTMLText("Hello World", { fontSize: 20 });
 ```
 
 _**Important:** Because the HTMLText object takes a raw HTML string, it's represents a potential vector for [XSS](https://en.wikipedia.org/wiki/Cross-site_scripting), it's strongly encourage you santize input especially if you're accepting user-strings._
+
+### Custom Fonts
+
+Because rendering within a `<foreignObject>` element does not have access to fonts available in the current document, therefore, you need to load the fonts explicitly.
+
+```js
+const text = new HTMLText("Hello World", { fontFamily: 'Custom' });
+
+await text.style.loadFont('./path/to/custom-regular.ttf', { family: 'Custom' });
+```
+
+**Multiple Weights**
+
+```js
+const text = new HTMLText("Hello <b>World</b>", { fontFamily: 'Custom' });
+
+await Promise.all([
+    text.style.loadFont('./path/to/custom-regular.ttf', { family: 'Custom' }),
+    text.style.loadFont('./path/to/custom-bold.ttf', { family: 'Custom', weight: 'bold' });
+]);
+```
 
 ## Styles
 
@@ -46,16 +61,17 @@ Not all styles and values are compatible between PIXI.Text, mainly because Text 
 **Supported**
 
 * `fill`
-* `fontFamily` (web-safe fonts only)
+* `fontFamily`
 * `fontSize`
 * `fontWeight`
 * `fontStyle`
 * `fontVariant`
 * `letterSpacing` †
-* `align` (also supports "justify")
+* `align` (also supports `justify` value)
 * `padding`
 * `breakWords`
 * `lineHeight` †
+* `whiteSpace` (also supports `nowrap`, `pre-wrap` values)
 * `wordWrap`
 * `wordWrapWidth`
 * `strokeThickness` ‡
@@ -77,7 +93,6 @@ Not all styles and values are compatible between PIXI.Text, mainly because Text 
 * `fillGradientType`
 * `miterLimit`
 * `textBaseline`
-* `whiteSpace`
 
 ## Example
 
