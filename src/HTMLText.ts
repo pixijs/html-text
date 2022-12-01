@@ -116,7 +116,9 @@ export class HTMLText extends Sprite
 
         // Measure the contents
         document.body.appendChild(dom);
-        const { width, height } = dom.getBoundingClientRect();
+        const { width: _width, height: _height } = dom.getBoundingClientRect();
+        const width = Math.ceil(_width);
+        const height = Math.ceil(_height);
 
         document.body.removeChild(dom);
 
