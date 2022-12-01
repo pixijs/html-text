@@ -63,6 +63,9 @@ class HTMLTextStyle extends TextStyle
     /** List of internal style rules */
     private _overrides: string[] = [];
 
+    /** Global rules or stylesheet, useful for creating rules for rendering */
+    public globalCSS = '';
+
     /**
      * Convert a TextStyle to HTMLTextStyle
      * @example
@@ -158,49 +161,49 @@ class HTMLTextStyle extends TextStyle
      * Internally converts all of the style properties into CSS equivalents.
      * @return The CSS style string, for setting `style` property of root HTMLElement.
      */
-    public toCSS(): string
+    public toCSS(scale: number): string
     {
         return [
             'display: inline-block',
             `color: ${this.normalizeColor(this.fill)}`,
-            `font-size: ${this.fontSize}px`,
+            `font-size: ${(this.fontSize as number) * scale}px`,
             `font-family: ${this.fontFamily}`,
             `font-weight: ${this.fontWeight}`,
             `font-style: ${this.fontStyle}`,
             `font-variant: ${this.fontVariant}`,
-            `letter-spacing: ${this.letterSpacing}px`,
+            `letter-spacing: ${this.letterSpacing * scale}px`,
             `text-align: ${this.align}`,
-            `padding: ${this.padding}px`,
+            `padding: ${this.padding * scale}px`,
             `white-space: ${this.whiteSpace}`,
-            ...this.lineHeight ? [`line-height: ${this.lineHeight}px`] : [],
+            ...this.lineHeight ? [`line-height: ${this.lineHeight * scale}px`] : [],
             ...this.wordWrap ? [
                 `word-wrap: ${this.breakWords ? 'break-all' : 'break-word'}`,
-                `max-width: ${this.wordWrapWidth}px`
+                `max-width: ${this.wordWrapWidth * scale}px`
             ] : [],
             ...this.strokeThickness ? [
-                `-webkit-text-stroke-width: ${this.strokeThickness}px`,
+                `-webkit-text-stroke-width: ${this.strokeThickness * scale}px`,
                 `-webkit-text-stroke-color: ${this.normalizeColor(this.stroke)}`,
-                `text-stroke-width: ${this.strokeThickness}px`,
+                `text-stroke-width: ${this.strokeThickness * scale}px`,
                 `text-stroke-color: ${this.normalizeColor(this.stroke)}`,
                 'paint-order: stroke',
             ] : [],
-            ...this.dropShadow ? [this.dropShadowToCSS()] : [],
+            ...this.dropShadow ? [this.dropShadowToCSS(scale)] : [],
             ...this._overrides,
         ].join(';');
     }
 
     /** Get the font CSS styles from the loaded font, If available. */
-    public toFontCSS(): string
+    public toGlobalCSS(): string
     {
         return this._fonts.reduce((result, font) => (
             `${result}
             @font-face {
                 font-family: "${font.family}";
-                src: url(${font.url});
+                src: url('${font.url}');
                 font-weight: ${font.weight};
                 font-style: ${font.style}; 
             }`
-        ), '');
+        ), this.globalCSS);
     }
 
     /** Convert numerical colors into hex-strings */
@@ -220,12 +223,12 @@ class HTMLTextStyle extends TextStyle
     }
 
     /** Convert the internal drop-shadow settings to CSS text-shadow */
-    private dropShadowToCSS(): string
+    private dropShadowToCSS(scale: number): string
     {
         let color = this.normalizeColor(this.dropShadowColor);
         const alpha = this.dropShadowAlpha;
         const x = Math.round(Math.cos(this.dropShadowAngle) * this.dropShadowDistance);
-        const y = Math.round(Math.sin(this.dropShadowAngle) * this.dropShadowDistance);
+        let y = Math.round(Math.sin(this.dropShadowAngle) * this.dropShadowDistance);
 
         // Append alpha to color
         if (color.startsWith('#') && alpha < 1)
@@ -233,7 +236,22 @@ class HTMLTextStyle extends TextStyle
             color += (alpha * 255 | 0).toString(16).padStart(2, '0');
         }
 
-        return `text-shadow: ${x}px ${y}px ${this.dropShadowBlur}px ${color}`;
+        const { userAgent } = settings.ADAPTER.getNavigator();
+
+        // Shadow is flipped on Safari
+        if ((/^((?!chrome|android).)*safari/i).test(userAgent))
+        {
+            y *= -1;
+        }
+
+        const position = `${x * scale}px ${y * scale}px`;
+
+        if (this.dropShadowBlur > 0)
+        {
+            return `text-shadow: ${position} ${this.dropShadowBlur}px ${color}`;
+        }
+
+        return `text-shadow: ${position} ${color}`;
     }
 
     /** Resets all properties to the defaults specified in TextStyle.prototype._default */

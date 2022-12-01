@@ -23,7 +23,7 @@ export class HTMLText extends Sprite
     public static defaultAutoResolution = true;
 
     private _domElement: HTMLElement;
-    private _fontElement: HTMLElement;
+    private _styleElement: HTMLElement;
     private _svgRoot: SVGSVGElement;
     private _foreignObject: SVGForeignObjectElement;
     private _image: HTMLImageElement;
@@ -36,6 +36,9 @@ export class HTMLText extends Sprite
     private _loading = false;
     private localStyleID = -1;
     private dirty = false;
+
+    /** The HTMLTextStyle object is owned by this instance */
+    private ownsStyle = false;
 
     /**
      * @param {string} [text] - Text contents
@@ -63,14 +66,15 @@ export class HTMLText extends Sprite
         const svgRoot = document.createElementNS(ns, 'svg');
         const foreignObject = document.createElementNS(ns, 'foreignObject');
         const domElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
-        const fontElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'style');
+        const styleElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'style');
 
         foreignObject.setAttribute('height', '100%');
         foreignObject.setAttribute('width', '100%');
         svgRoot.appendChild(foreignObject);
+        svgRoot.style.paintOrder = 'stroke fill';
 
         this._domElement = domElement;
-        this._fontElement = fontElement;
+        this._styleElement = styleElement;
         this._svgRoot = svgRoot;
         this._foreignObject = foreignObject;
         this._image = new Image();
@@ -106,13 +110,13 @@ export class HTMLText extends Sprite
         }
 
         const dom = this._domElement;
-        const font = this._fontElement;
+        const globalStyles = this._styleElement;
 
         Object.assign(dom, {
             innerHTML: this._text,
-            style: style.toCSS(),
+            style: style.toCSS(resolution),
         });
-        font.innerHTML = style.toFontCSS();
+        globalStyles.innerHTML = style.toGlobalCSS();
 
         // Measure the contents
         document.body.appendChild(dom);
@@ -123,7 +127,7 @@ export class HTMLText extends Sprite
         document.body.removeChild(dom);
 
         // Assemble the svg output
-        this._foreignObject.appendChild(font);
+        this._foreignObject.appendChild(globalStyles);
         this._foreignObject.appendChild(dom);
         this._svgRoot.setAttribute('width', width.toString());
         this._svgRoot.setAttribute('height', height.toString());
@@ -140,7 +144,6 @@ export class HTMLText extends Sprite
             image.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
             image.onload = () =>
             {
-                context.scale(resolution, resolution);
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 context.drawImage(
                     image,
@@ -284,11 +287,17 @@ export class HTMLText extends Sprite
         {
             this.canvas.width = this.canvas.height = 0; // Safari hack
         }
+        // Remove any loaded fonts if we created the HTMLTextStyle
+        if (this.ownsStyle)
+        {
+            this._style?.cleanFonts();
+        }
         this.canvas = forceClear;
         this._style = forceClear;
         this._svgRoot = forceClear;
         this._domElement = forceClear;
         this._foreignObject = forceClear;
+        this._styleElement = forceClear;
         this._image.onload = null;
         this._image.src = '';
         this._image = forceClear;
@@ -344,10 +353,17 @@ export class HTMLText extends Sprite
 
     set style(style: HTMLTextStyle | TextStyle | Partial<ITextStyle>) // eslint-disable-line require-jsdoc
     {
+        // Don't do anything if we're re-assigning
+        if (this._style === style)
+        {
+            return;
+        }
+
         style = style || {};
 
         if (style instanceof HTMLTextStyle)
         {
+            this.ownsStyle = false;
             this._style = style;
         }
         // Clone TextStyle
@@ -355,10 +371,12 @@ export class HTMLText extends Sprite
         {
             console.warn('[HTMLText] Cloning TextStyle, if this is not what you want, use HTMLTextStyle');
 
+            this.ownsStyle = true;
             this._style = HTMLTextStyle.from(style);
         }
         else
         {
+            this.ownsStyle = true;
             this._style = new HTMLTextStyle(style);
         }
 
