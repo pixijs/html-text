@@ -4,7 +4,7 @@
 
 An alternative to `PIXI.Text` that works with PixiJS v5 (both WebGL and Canvas), however, it has some advantages:
 
-* Supports [HTML tags](https://www.scaler.com/topics/html/html-tags/) for styling such as `<strong>`, or `<em>`, as well as `<span style="">`
+* Supports [HTML tags](https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML) for styling such as `<strong>`, or `<em>`, as well as `<span style="">`
 * Better support for emojis and other HTML layout features, better compatibility with CSS line-height and letter-spacing.
 
 Disadvantages:
