@@ -30,7 +30,7 @@ export class HTMLText extends Sprite
 
     /** The maximum width in rendered pixels that the content can be, any larger will be hidden */
     public maxWidth: number;
-
+    
     /** The maximum height in rendered pixels that the content can be, any larger will be hidden */
     public maxHeight: number;
 
@@ -47,7 +47,6 @@ export class HTMLText extends Sprite
     private _autoResolution = true;
     private _loading = false;
     private _shadow: HTMLElement;
-    private _shadowRoot: ShadowRoot;
     private localStyleID = -1;
     private dirty = false;
 
@@ -74,6 +73,7 @@ export class HTMLText extends Sprite
         super(texture);
 
         const ns = 'http://www.w3.org/2000/svg';
+        const shadow = document.createElement('div');
         const svgRoot = document.createElementNS(ns, 'svg');
         const foreignObject = document.createElementNS(ns, 'foreignObject');
         const domElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
@@ -87,9 +87,7 @@ export class HTMLText extends Sprite
 
         this.maxWidth = HTMLText.defaultMaxWidth;
         this.maxHeight = HTMLText.defaultMaxHeight;
-        this._shadow = document.createElement('div');
-        this._shadow.dataset.pixiId = 'text-html-shadow';
-        this._shadowRoot = this._shadow.attachShadow({ mode: 'open' });
+        this._shadow = shadow;
         this._domElement = domElement;
         this._styleElement = styleElement;
         this._svgRoot = svgRoot;
@@ -99,7 +97,17 @@ export class HTMLText extends Sprite
         this._image = new Image();
         this._autoResolution = HTMLText.defaultAutoResolution;
 
-        document.body.appendChild(this._shadow);
+        const shadowRoot = shadow.attachShadow({ mode: 'open' });
+        shadowRoot.appendChild(svgRoot);
+        shadow.dataset.pixiId = '@pixi/text-html';
+        Object.assign(shadow.style, {
+            position: 'absolute',
+            top: '0',
+            left: '-1px',
+            width: '1px',
+            height: '1px',
+        });
+        document.body.appendChild(shadow);
 
         this.canvas = canvas;
         this.context = canvas.getContext('2d') as ICanvasRenderingContext2D;
@@ -136,11 +144,9 @@ export class HTMLText extends Sprite
         });
         this._styleElement.innerHTML = style.toGlobalCSS();
 
-        // Measure the contents using the shadow DOM
-        this._shadowRoot.appendChild(this._svgRoot);
+        // Measure the contents using the shadow DOM        
         const contentBounds = this._domElement.getBoundingClientRect();
 
-        this._shadowRoot.removeChild(this._svgRoot);
         const width = Math.min(this.maxWidth, Math.ceil(contentBounds.width));
         const height = Math.min(this.maxHeight, Math.ceil(contentBounds.height));
 
@@ -317,7 +323,6 @@ export class HTMLText extends Sprite
         this._image.src = '';
         this._image = forceClear;
         this._shadow = forceClear;
-        this._shadowRoot = forceClear;
     }
 
     /**
