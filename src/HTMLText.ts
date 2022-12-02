@@ -34,6 +34,8 @@ export class HTMLText extends Sprite
     private _style: HTMLTextStyle | null = null;
     private _autoResolution = true;
     private _loading = false;
+    private _shadow: HTMLElement;
+    private _shadowRoot: ShadowRoot;
     private localStyleID = -1;
     private dirty = false;
 
@@ -73,12 +75,17 @@ export class HTMLText extends Sprite
         svgRoot.appendChild(foreignObject);
         svgRoot.style.paintOrder = 'stroke fill';
 
+        this._shadow = document.createElement('div');
+        this._shadow.dataset.pixiId = 'text-html-shadow';
+        this._shadowRoot = this._shadow.attachShadow({ mode: 'open' });
         this._domElement = domElement;
         this._styleElement = styleElement;
         this._svgRoot = svgRoot;
         this._foreignObject = foreignObject;
         this._image = new Image();
         this._autoResolution = HTMLText.defaultAutoResolution;
+
+        document.body.appendChild(this._shadow);
 
         this.canvas = canvas;
         this.context = canvas.getContext('2d') as ICanvasRenderingContext2D;
@@ -118,22 +125,24 @@ export class HTMLText extends Sprite
         });
         globalStyles.innerHTML = style.toGlobalCSS();
 
-        // Measure the contents
-        document.body.appendChild(dom);
+        // Measure the contents using the shadow DOM
+        // we do this for CSS isolation
+        this._shadowRoot.appendChild(dom);
+        this._shadowRoot.appendChild(globalStyles);
         const { width: _width, height: _height } = dom.getBoundingClientRect();
         const width = Math.ceil(_width);
         const height = Math.ceil(_height);
 
-        document.body.removeChild(dom);
-
         // Assemble the svg output
-        this._foreignObject.appendChild(globalStyles);
         this._foreignObject.appendChild(dom);
+        this._foreignObject.appendChild(globalStyles);
+
+        // console.log('getBBox', this._svgRoot.getBBox());
         this._svgRoot.setAttribute('width', width.toString());
         this._svgRoot.setAttribute('height', height.toString());
 
-        canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)) * resolution);
-        canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)) * resolution);
+        canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)));
+        canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)));
 
         if (!this._loading)
         {
@@ -301,6 +310,8 @@ export class HTMLText extends Sprite
         this._image.onload = null;
         this._image.src = '';
         this._image = forceClear;
+        this._shadow = forceClear;
+        this._shadowRoot = forceClear;
     }
 
     /**

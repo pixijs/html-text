@@ -41,9 +41,9 @@
 
       const style = new PIXI.HTMLTextStyle({
         fontSize: 40,
-        fontFamily: ['Roboto', 'Arial'],
+        fontFamily: ['OpenSans', 'Courier New'],
         align: 'justify',
-        letterSpacing: 3,
+        letterSpacing: 1,
         wordWrap: true,
         wordWrapWidth: 600,
         lineHeight: 48,
@@ -59,24 +59,31 @@
       const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur &nbsp; adipiscing elit</b>.<br>Phasellus porta&nbsp;nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
 
       const text2 = new PIXI.HTMLText(text, style);
-      text2.texture.baseTexture.on('update', () => app.render());
+      text2.texture.baseTexture.on('update', () => {
+        app.render();
+        refreshBounds();
+      });
       text2.y = 20;
       text2.x = 20;
 
       // Load the font weights
       Promise.all([
-        text2.style.loadFont('./Roboto-Regular.ttf', { family: 'Roboto' }),
-        text2.style.loadFont('./Roboto-Bold.ttf', { family: 'Roboto', weight: 'bold' }),
+        text2.style.loadFont('./OpenSans-Regular.ttf', { family: 'OpenSans' }),
+        text2.style.loadFont('./OpenSans-Bold.ttf', { family: 'OpenSans', weight: 'bold' }),
       ]).then(() => app.render());
       
       document.getElementById('text').appendChild(text2.canvas);
+      const rect = new PIXI.Graphics();
 
-      const rect = new PIXI.Graphics()
-        .beginFill(0, 0)
-        .lineStyle({ color: 0xff0000, width: 1, native: true })
-        .drawShape(text2.getBounds());
+      const refreshBounds = () => rect
+        .clear()
+        .beginFill(0, 0.01)
+        .lineStyle({ color: 0xffffff, width: 1, native: true })
+        .drawRect(text2.x, text2.y, text2.width, text2.height);
 
-      app.stage.addChild(rect, text2);
+      refreshBounds();
+
+      app.stage.addChild(text2, rect);
     </script>
   </body>
 </html>

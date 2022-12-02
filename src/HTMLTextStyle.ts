@@ -15,7 +15,8 @@ interface IHTMLTextStyle extends Omit<ITextStyle, ITextStyleIgnore>
 
 interface IHTMLFont
 {
-    url: string;
+    dataSrc: string;
+    src: string;
     family: string;
     weight: TextStyleFontWeight;
     style: TextStyleFontStyle;
@@ -86,6 +87,7 @@ class HTMLTextStyle extends TextStyle
     {
         if (this._fonts.length > 0)
         {
+            this._fonts.forEach(({ src }) => URL.revokeObjectURL(src));
             this.fontFamily = 'Arial';
             this._fonts.length = 0;
             this.styleID++;
@@ -93,30 +95,42 @@ class HTMLTextStyle extends TextStyle
     }
 
     /** Because of how HTMLText renders, fonts need to be imported */
-    public loadFont(url: string, options: Partial<Omit<IHTMLFont, 'url'>> = {}): Promise<IHTMLFont>
+    public loadFont(url: string, options: Partial<Omit<IHTMLFont, 'url'>> = {}): Promise<void>
     {
-        return settings.ADAPTER.fetch(url)
+        return settings.ADAPTER.fetch(`${url}?v=${Date.now()}`)
             .then((response) => response.blob())
-            .then((blob) => new Promise<string>((resolve, reject) =>
+            .then(async (blob) => new Promise<[string, string]>((resolve, reject) =>
             {
+                const src = URL.createObjectURL(blob);
                 const reader = new FileReader();
 
-                reader.onload = () => resolve(reader.result as string);
+                reader.onload = () => resolve([src, reader.result as string]);
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
             }))
-            .then((url) =>
+            .then(async ([src, dataSrc]) =>
             {
                 const font = Object.assign({}, {
                     family: utils.path.basename(url, utils.path.extname(url)),
                     weight: 'normal',
                     style: 'normal',
-                }, { url }, options) as IHTMLFont;
+                    src,
+                    dataSrc,
+                }, options) as IHTMLFont;
 
                 this._fonts.push(font);
                 this.styleID++;
 
-                return font;
+                // Load it into the current DOM so we can properly measure it!
+                const fontFace = new FontFace(font.family, `url(${font.src})`, {
+                    weight: font.weight,
+                    style: font.style,
+                });
+
+                await fontFace.load();
+                document.fonts.add(fontFace);
+                await document.fonts.ready;
+                this.styleID++;
             });
     }
 
@@ -199,7 +213,7 @@ class HTMLTextStyle extends TextStyle
             `${result}
             @font-face {
                 font-family: "${font.family}";
-                src: url('${font.url}');
+                src: url('${font.dataSrc}');
                 font-weight: ${font.weight};
                 font-style: ${font.style}; 
             }`
@@ -236,10 +250,8 @@ class HTMLTextStyle extends TextStyle
             color += (alpha * 255 | 0).toString(16).padStart(2, '0');
         }
 
-        const { userAgent } = settings.ADAPTER.getNavigator();
-
-        // Shadow is flipped on Safari
-        if ((/^((?!chrome|android).)*safari/i).test(userAgent))
+        // Hack: text-shadow is flipped on Safari, boo!
+        if (this.isSafari)
         {
             y *= -1;
         }
@@ -258,6 +270,14 @@ class HTMLTextStyle extends TextStyle
     public reset(): void
     {
         Object.assign(this, HTMLTextStyle.defaultOptions);
+    }
+
+    /** Proving that Safari is the new IE */
+    private get isSafari(): boolean
+    {
+        const { userAgent } = settings.ADAPTER.getNavigator();
+
+        return (/^((?!chrome|android).)*safari/i).test(userAgent);
     }
 
     /** @ignore fillGradientStops is not supported by HTMLText */
