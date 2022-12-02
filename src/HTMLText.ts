@@ -72,12 +72,13 @@ export class HTMLText extends Sprite
 
         super(texture);
 
-        const ns = 'http://www.w3.org/2000/svg';
+        const nssvg = 'http://www.w3.org/2000/svg';
+        const nsxhtml = 'http://www.w3.org/1999/xhtml';
         const shadow = document.createElement('div');
-        const svgRoot = document.createElementNS(ns, 'svg');
-        const foreignObject = document.createElementNS(ns, 'foreignObject');
-        const domElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
-        const styleElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'style');
+        const svgRoot = document.createElementNS(nssvg, 'svg');
+        const foreignObject = document.createElementNS(nssvg, 'foreignObject');
+        const domElement = document.createElementNS(nsxhtml, 'div');
+        const styleElement = document.createElementNS(nsxhtml, 'style');
 
         // Arbitrary max size
         foreignObject.setAttribute('width', '10000');
@@ -143,7 +144,7 @@ export class HTMLText extends Sprite
             innerHTML: this._text,
             style: style.toCSS(resolution),
         });
-        this._styleElement.innerHTML = style.toGlobalCSS();
+        this._styleElement.textContent = style.toGlobalCSS();
 
         // Measure the contents using the shadow DOM
         const contentBounds = this._domElement.getBoundingClientRect();
