@@ -16,11 +16,23 @@ import type { IDestroyOptions } from '@pixi/display';
  */
 export class HTMLText extends Sprite
 {
+    /** Default maxWidth, set at construction */
+    public static defaultMaxWidth = 2024;
+
+    /** Default maxHeight, set at construction */
+    public static defaultMaxHeight = 2024;
+
     /** Default resolution, make sure autoResolution or defaultAutoResolution is `false`. */
     public static defaultResolution: number | undefined;
 
     /** Default autoResolution for all HTMLText objects */
     public static defaultAutoResolution = true;
+
+    /** The maximum width in rendered pixels that the content can be, any larger will be hidden */
+    public maxWidth: number;
+
+    /** The maximum height in rendered pixels that the content can be, any larger will be hidden */
+    public maxHeight: number;
 
     private _domElement: HTMLElement;
     private _styleElement: HTMLElement;
@@ -54,9 +66,6 @@ export class HTMLText extends Sprite
     {
         canvas = canvas || settings.ADAPTER.createCanvas(3, 3);
 
-        canvas.width = 3;
-        canvas.height = 3;
-
         const texture = Texture.from(canvas, { scaleMode: settings.SCALE_MODE });
 
         texture.orig = new Rectangle();
@@ -70,11 +79,14 @@ export class HTMLText extends Sprite
         const domElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
         const styleElement = document.createElementNS('http://www.w3.org/1999/xhtml', 'style');
 
-        foreignObject.setAttribute('height', '100%');
-        foreignObject.setAttribute('width', '100%');
+        // Arbitrary max size
+        foreignObject.setAttribute('width', '10000');
+        foreignObject.setAttribute('height', '10000');
+        foreignObject.style.overflow = 'hidden';
         svgRoot.appendChild(foreignObject);
-        svgRoot.style.paintOrder = 'stroke fill';
 
+        this.maxWidth = HTMLText.defaultMaxWidth;
+        this.maxHeight = HTMLText.defaultMaxHeight;
         this._shadow = document.createElement('div');
         this._shadow.dataset.pixiId = 'text-html-shadow';
         this._shadowRoot = this._shadow.attachShadow({ mode: 'open' });
@@ -82,6 +94,8 @@ export class HTMLText extends Sprite
         this._styleElement = styleElement;
         this._svgRoot = svgRoot;
         this._foreignObject = foreignObject;
+        this._foreignObject.appendChild(styleElement);
+        this._foreignObject.appendChild(domElement);
         this._image = new Image();
         this._autoResolution = HTMLText.defaultAutoResolution;
 
@@ -116,28 +130,20 @@ export class HTMLText extends Sprite
             return;
         }
 
-        const dom = this._domElement;
-        const globalStyles = this._styleElement;
-
-        Object.assign(dom, {
+        Object.assign(this._domElement, {
             innerHTML: this._text,
             style: style.toCSS(resolution),
         });
-        globalStyles.innerHTML = style.toGlobalCSS();
+        this._styleElement.innerHTML = style.toGlobalCSS();
 
         // Measure the contents using the shadow DOM
-        // we do this for CSS isolation
-        this._shadowRoot.appendChild(dom);
-        this._shadowRoot.appendChild(globalStyles);
-        const { width: _width, height: _height } = dom.getBoundingClientRect();
-        const width = Math.ceil(_width);
-        const height = Math.ceil(_height);
+        this._shadowRoot.appendChild(this._svgRoot);
+        const contentBounds = this._domElement.getBoundingClientRect();
 
-        // Assemble the svg output
-        this._foreignObject.appendChild(dom);
-        this._foreignObject.appendChild(globalStyles);
+        this._shadowRoot.removeChild(this._svgRoot);
+        const width = Math.min(this.maxWidth, Math.ceil(contentBounds.width));
+        const height = Math.min(this.maxHeight, Math.ceil(contentBounds.height));
 
-        // console.log('getBBox', this._svgRoot.getBBox());
         this._svgRoot.setAttribute('width', width.toString());
         this._svgRoot.setAttribute('height', height.toString());
 
