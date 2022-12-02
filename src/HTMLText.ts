@@ -30,7 +30,7 @@ export class HTMLText extends Sprite
 
     /** The maximum width in rendered pixels that the content can be, any larger will be hidden */
     public maxWidth: number;
-    
+
     /** The maximum height in rendered pixels that the content can be, any larger will be hidden */
     public maxHeight: number;
 
@@ -98,6 +98,7 @@ export class HTMLText extends Sprite
         this._autoResolution = HTMLText.defaultAutoResolution;
 
         const shadowRoot = shadow.attachShadow({ mode: 'open' });
+
         shadowRoot.appendChild(svgRoot);
         shadow.dataset.pixiId = '@pixi/text-html';
         Object.assign(shadow.style, {
@@ -144,7 +145,7 @@ export class HTMLText extends Sprite
         });
         this._styleElement.innerHTML = style.toGlobalCSS();
 
-        // Measure the contents using the shadow DOM        
+        // Measure the contents using the shadow DOM
         const contentBounds = this._domElement.getBoundingClientRect();
 
         const width = Math.min(this.maxWidth, Math.ceil(contentBounds.width));
