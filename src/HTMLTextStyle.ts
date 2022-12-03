@@ -15,11 +15,14 @@ interface IHTMLTextStyle extends Omit<ITextStyle, ITextStyleIgnore>
 
 interface IHTMLFont
 {
+    originalUrl: string;
     dataSrc: string;
+    fontFace: FontFace;
     src: string;
     family: string;
     weight: TextStyleFontWeight;
     style: TextStyleFontStyle;
+    refs: number;
 }
 
 /**
@@ -30,6 +33,13 @@ interface IHTMLFont
  */
 class HTMLTextStyle extends TextStyle
 {
+    /** The collection of installed fonts */
+    public static availableFonts: Record<string, IHTMLFont> = {};
+
+    /**
+     * List of default options, these are largely the same as TextStyle,
+     * with the exception of whiteSpace, which is set to 'normal' by default.
+     */
     public static readonly defaultOptions: IHTMLTextStyle = {
         align: 'left',
         breakWords: false,
@@ -87,7 +97,16 @@ class HTMLTextStyle extends TextStyle
     {
         if (this._fonts.length > 0)
         {
-            this._fonts.forEach(({ src }) => URL.revokeObjectURL(src));
+            this._fonts.forEach((font) =>
+            {
+                URL.revokeObjectURL(font.src);
+                font.refs--;
+                if (font.refs === 0)
+                {
+                    document.fonts.delete(font.fontFace);
+                    delete HTMLTextStyle.availableFonts[font.originalUrl];
+                }
+            });
             this.fontFamily = 'Arial';
             this._fonts.length = 0;
             this.styleID++;
@@ -97,7 +116,21 @@ class HTMLTextStyle extends TextStyle
     /** Because of how HTMLText renders, fonts need to be imported */
     public loadFont(url: string, options: Partial<Omit<IHTMLFont, 'url'>> = {}): Promise<void>
     {
-        return settings.ADAPTER.fetch(`${url}?v=${Date.now()}`)
+        const { availableFonts } = HTMLTextStyle;
+
+        // Font is already installed
+        if (availableFonts[url])
+        {
+            const font = availableFonts[url];
+
+            this._fonts.push(font);
+            font.refs++;
+            this.styleID++;
+
+            return Promise.resolve();
+        }
+
+        return settings.ADAPTER.fetch(url)
             .then((response) => response.blob())
             .then(async (blob) => new Promise<[string, string]>((resolve, reject) =>
             {
@@ -110,14 +143,17 @@ class HTMLTextStyle extends TextStyle
             }))
             .then(async ([src, dataSrc]) =>
             {
-                const font = Object.assign({}, {
+                const font = Object.assign({
                     family: utils.path.basename(url, utils.path.extname(url)),
                     weight: 'normal',
                     style: 'normal',
                     src,
                     dataSrc,
+                    refs: 1,
+                    originalUrl: url,
                 }, options) as IHTMLFont;
 
+                availableFonts[url] = font;
                 this._fonts.push(font);
                 this.styleID++;
 
@@ -126,6 +162,9 @@ class HTMLTextStyle extends TextStyle
                     weight: font.weight,
                     style: font.style,
                 });
+
+                // Keep this reference so we can remove it later from document
+                font.fontFace = fontFace;
 
                 await fontFace.load();
                 document.fonts.add(fontFace);
