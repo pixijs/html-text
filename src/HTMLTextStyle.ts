@@ -173,7 +173,7 @@ class HTMLTextStyle extends TextStyle
                 await fontFace.load();
                 document.fonts.add(fontFace);
                 await document.fonts.ready;
-                
+
                 this.styleID++;
             });
     }
