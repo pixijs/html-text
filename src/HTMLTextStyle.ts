@@ -8,20 +8,40 @@ type HTMLTextStyleWhiteSpace = 'normal' | 'pre' | 'pre-line' | 'nowrap' | 'pre-w
 
 // Subset of ITextStyle
 type ITextStyleIgnore = 'whiteSpace' | 'fillGradientStops' | 'fillGradientType' | 'miterLimit' | 'textBaseline';
+
+/**
+ * Modifed versions from ITextStyle.
+ * @extends ITextStyle
+ */
 interface IHTMLTextStyle extends Omit<ITextStyle, ITextStyleIgnore>
 {
+    /**
+     * White-space with expanded options
+     * @type {'normal'|'pre'|'pre-line'|'nowrap'|'pre-wrap'}
+     */
     whiteSpace: HTMLTextStyleWhiteSpace;
 }
 
+/**
+ * Font information for HTMLText
+ */
 interface IHTMLFont
 {
+    /** User-supplied URL request */
     originalUrl: string;
+    /** Base64 string for font */
     dataSrc: string;
-    fontFace: FontFace;
+    /** FontFace installed in the document */
+    fontFace: FontFace | null;
+    /** Blob-based URL for font */
     src: string;
+    /** Family name of font */
     family: string;
+    /** Weight of the font */
     weight: TextStyleFontWeight;
+    /** Style of the font */
     style: TextStyleFontStyle;
+    /** Reference counter */
     refs: number;
 }
 
@@ -30,6 +50,7 @@ interface IHTMLFont
  * @class
  * @extends PIXI.TextStyle
  * @see {@link https://pixijs.download/dev/docs/PIXI.TextStyle.html PIXI.TextStyle}
+ * @param {PIXI.ITextStyle|IHTMLTextStyle} [style] - Style to copy.
  */
 class HTMLTextStyle extends TextStyle
 {
@@ -117,7 +138,7 @@ class HTMLTextStyle extends TextStyle
     }
 
     /** Because of how HTMLText renders, fonts need to be imported */
-    public loadFont(url: string, options: Partial<Omit<IHTMLFont, 'url'>> = {}): Promise<void>
+    public loadFont(url: string, options: Partial<Pick<IHTMLFont, 'weight' | 'style' | 'family'>> = {}): Promise<void>
     {
         const { availableFonts } = HTMLTextStyle;
 
@@ -146,7 +167,7 @@ class HTMLTextStyle extends TextStyle
             }))
             .then(async ([src, dataSrc]) =>
             {
-                const font = Object.assign({
+                const font: IHTMLFont = Object.assign({
                     family: utils.path.basename(url, utils.path.extname(url)),
                     weight: 'normal',
                     style: 'normal',
@@ -155,7 +176,7 @@ class HTMLTextStyle extends TextStyle
                     refs: 1,
                     originalUrl: url,
                     fontFace: null,
-                }, options) as IHTMLFont;
+                }, options);
 
                 availableFonts[url] = font;
                 this._fonts.push(font);
