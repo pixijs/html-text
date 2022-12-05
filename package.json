@@ -24,7 +24,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --skipLibCheck --outDir .types_output",
     "postbuild:types": "api-extractor run --local",
     "demo": "run-p watch serve",
-    "lint": "eslint src",
+    "lint": "eslint src test",
     "types": "tsc -noEmit",
     "test": "run-s lint types unit-test build",
     "unit-test": "jest --silent",

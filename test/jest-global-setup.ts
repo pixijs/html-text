@@ -1,16 +1,12 @@
 import { spawn } from 'child_process';
 import { join } from 'path';
 
-export default async function ()
+export default async () =>
 {
-    const httpServerProcess = spawn(
-        'http-server',
-        ['-c-1', `${join(process.cwd(), './test')}`],
-        {
-            // See https://nodejs.org/api/child_process.html#spawning-bat-and-cmd-files-on-windows
-            shell: process.platform === 'win32',
-        },
-    );
+    const rootPath = join(process.cwd(), './test');
+    const httpServerProcess = spawn('http-server', ['-c-1', rootPath], {
+        shell: process.platform === 'win32',
+    });
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore

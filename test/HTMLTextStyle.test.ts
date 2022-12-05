@@ -1,62 +1,80 @@
 import { HTMLTextStyle } from '../src/HTMLTextStyle';
 import { TextStyle } from '@pixi/text';
 
-describe('HTMLTextStyle', () => {
-    it('should create an instance', () => {
+describe('HTMLTextStyle', () =>
+{
+    it('should create an instance', () =>
+    {
         expect(new HTMLTextStyle()).toBeTruthy();
     });
 
-    describe('constructor', () => {
-        it('should set properties from constructor', () => {
+    describe('constructor', () =>
+    {
+        it('should set properties from constructor', () =>
+        {
             const style = new HTMLTextStyle({
                 fontFamily: 'Times',
                 fontSize: 12,
             });
+
             expect(style.fontFamily).toBe('Times');
             expect(style.fontSize).toBe(12);
         });
     });
 
-    describe('from', () => {
-        it('should import from TextStyle', () => {
+    describe('from', () =>
+    {
+        it('should import from TextStyle', () =>
+        {
             expect(HTMLTextStyle.from(new TextStyle())).toBeTruthy();
         });
-        it('should import from TextStyle and disconnect', () => {
+        it('should import from TextStyle and disconnect', () =>
+        {
             const original = new TextStyle();
             const style = HTMLTextStyle.from(original);
+
             original.fontSize = 12;
             expect(original.fontSize).toBe(12);
             expect(style.fontSize).toBe(HTMLTextStyle.defaultOptions.fontSize);
-        })
+        });
     });
 
-    describe('addOverride', () => {
-        it('should add override', () => {
+    describe('addOverride', () =>
+    {
+        it('should add override', () =>
+        {
             const style = new HTMLTextStyle();
             const id = style.styleID;
+
             style.addOverride('color: red');
             expect(style.styleID).toBe(id + 1);
         });
 
-        it('should add override once', () => {
+        it('should add override once', () =>
+        {
             const style = new HTMLTextStyle();
             const id = style.styleID;
+
             style.addOverride('color: red');
             style.addOverride('color: red');
             expect(style.styleID).toBe(id + 1);
         });
 
-        it('should remove override', () => {
+        it('should remove override', () =>
+        {
             const style = new HTMLTextStyle();
             const id = style.styleID;
+
             style.addOverride('color: red');
             style.removeOverride('color: red');
             expect(style.styleID).toBe(id + 2);
         });
 
-        it('should remove override once', () => {
+        it('should remove override once', () =>
+        {
             const style = new HTMLTextStyle();
             const id = style.styleID;
+
             style.addOverride('color: red');
             style.removeOverride('color: red');
             style.removeOverride('color: red');
@@ -64,43 +82,57 @@ describe('HTMLTextStyle', () => {
         });
     });
 
-    describe('toCSS', () => {
-        it('should converto CSS', () => {
+    describe('toCSS', () =>
+    {
+        it('should converto CSS', () =>
+        {
             const style = new HTMLTextStyle();
+
             expect(style.toCSS(1)).toMatchSnapshot();
         });
 
-        it('should insert overrides', () => {
+        it('should insert overrides', () =>
+        {
             const style = new HTMLTextStyle();
+
             style.addOverride('color: red');
             expect(style.toCSS(1)).toMatchSnapshot();
         });
 
-        it('should respect scale', () => {
+        it('should respect scale', () =>
+        {
             const style = new HTMLTextStyle({
                 lineHeight: 50,
                 wordWrap: true,
                 wordWrapWidth: 200,
             });
+
             expect(style.toCSS(2)).toMatchSnapshot();
         });
     });
 
-    describe('toGlobalCSS', () => {
-        it('should converto CSS', () => {
+    describe('toGlobalCSS', () =>
+    {
+        it('should converto CSS', () =>
+        {
             const style = new HTMLTextStyle();
+
             expect(style.toGlobalCSS()).toMatchSnapshot();
         });
 
-        it('should converto CSS', () => {
+        it('should converto CSS', () =>
+        {
             const style = new HTMLTextStyle();
-            style.globalCSS = `p { color: red; }`
+
+            style.globalCSS = `p { color: red; }`;
             expect(style.toGlobalCSS()).toMatchSnapshot();
         });
     });
 
-    describe('loadFont', () => {
-        it('should load a font', async () => {
+    describe('loadFont', () =>
+    {
+        it('should load a font', async () =>
+        {
             const style = new HTMLTextStyle();
             const id = style.styleID;
             const url = 'http://localhost:8080/resources/Herborn.ttf';
@@ -118,7 +150,8 @@ describe('HTMLTextStyle', () => {
             expect(style.styleID).toBe(id + 3);
         });
 
-        it('should allow for family, style, weight overrides', async () => {
+        it('should allow for family, style, weight overrides', async () =>
+        {
             const style = new HTMLTextStyle();
             const url = 'http://localhost:8080/resources/Herborn.ttf';
 
@@ -137,7 +170,8 @@ describe('HTMLTextStyle', () => {
             style.cleanFonts();
         });
 
-        it('should load a font with ref-counting', async () => {
+        it('should load a font with ref-counting', async () =>
+        {
             const style1 = new HTMLTextStyle();
             const style2 = new HTMLTextStyle();
             const style3 = new HTMLTextStyle();

@@ -1,7 +1,7 @@
 import type { ChildProcess } from 'child_process';
 import kill from 'tree-kill';
 
-export default async function ()
+export default async () =>
 {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
