@@ -103,7 +103,10 @@ class HTMLTextStyle extends TextStyle
                 font.refs--;
                 if (font.refs === 0)
                 {
-                    document.fonts.delete(font.fontFace);
+                    if (font.fontFace)
+                    {
+                        document.fonts.delete(font.fontFace);
+                    }
                     delete HTMLTextStyle.availableFonts[font.originalUrl];
                 }
             });
@@ -151,6 +154,7 @@ class HTMLTextStyle extends TextStyle
                     dataSrc,
                     refs: 1,
                     originalUrl: url,
+                    fontFace: null,
                 }, options) as IHTMLFont;
 
                 availableFonts[url] = font;
@@ -169,6 +173,7 @@ class HTMLTextStyle extends TextStyle
                 await fontFace.load();
                 document.fonts.add(fontFace);
                 await document.fonts.ready;
+                
                 this.styleID++;
             });
     }

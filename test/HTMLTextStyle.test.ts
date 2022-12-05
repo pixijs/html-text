@@ -20,6 +20,13 @@ describe('HTMLTextStyle', () => {
     describe('from', () => {
         it('should import from TextStyle', () => {
             expect(HTMLTextStyle.from(new TextStyle())).toBeTruthy();
+        });
+        it('should import from TextStyle and disconnect', () => {
+            const original = new TextStyle();
+            const style = HTMLTextStyle.from(original);
+            original.fontSize = 12;
+            expect(original.fontSize).toBe(12);
+            expect(style.fontSize).toBe(HTMLTextStyle.defaultOptions.fontSize);
         })
     });
 
@@ -68,6 +75,15 @@ describe('HTMLTextStyle', () => {
             style.addOverride('color: red');
             expect(style.toCSS(1)).toMatchSnapshot();
         });
+
+        it('should respect scale', () => {
+            const style = new HTMLTextStyle({
+                lineHeight: 50,
+                wordWrap: true,
+                wordWrapWidth: 200,
+            });
+            expect(style.toCSS(2)).toMatchSnapshot();
+        });
     });
 
     describe('toGlobalCSS', () => {
@@ -80,6 +96,73 @@ describe('HTMLTextStyle', () => {
             const style = new HTMLTextStyle();
             style.globalCSS = `p { color: red; }`
             expect(style.toGlobalCSS()).toMatchSnapshot();
+        });
+    });
+
+    describe('loadFont', () => {
+        it('should load a font', async () => {
+            const style = new HTMLTextStyle();
+            const id = style.styleID;
+            const url = 'http://localhost:8080/resources/Herborn.ttf';
+
+            await style.loadFont(url);
+
+            expect(HTMLTextStyle.availableFonts[url]).toBeTruthy();
+            expect(Object.keys(HTMLTextStyle.availableFonts).length).toBe(1);
+            expect(style.styleID).toBe(id + 2); // 1 for font, 1 for install
+            expect(style.toGlobalCSS()).toContain('font-family: "Herborn"');
+
+            style.cleanFonts();
+
+            expect(Object.keys(HTMLTextStyle.availableFonts).length).toBe(0);
+            expect(style.styleID).toBe(id + 3);
+        });
+
+        it('should allow for family, style, weight overrides', async () => {
+            const style = new HTMLTextStyle();
+            const url = 'http://localhost:8080/resources/Herborn.ttf';
+
+            await style.loadFont(url, {
+                family: 'MyFont',
+                style: 'italic',
+                weight: 'bold',
+            });
+
+            const font = HTMLTextStyle.availableFonts[url];
+
+            expect(font.family).toBe('MyFont');
+            expect(font.style).toBe('italic');
+            expect(font.weight).toBe('bold');
+
+            style.cleanFonts();
+        });
+
+        it('should load a font with ref-counting', async () => {
+            const style1 = new HTMLTextStyle();
+            const style2 = new HTMLTextStyle();
+            const style3 = new HTMLTextStyle();
+            const url = 'http://localhost:8080/resources/Herborn.ttf';
+
+            await style1.loadFont(url);
+            await style2.loadFont(url);
+            await style3.loadFont(url);
+
+            expect(HTMLTextStyle.availableFonts[url].refs).toBe(3);
+            expect(Object.keys(HTMLTextStyle.availableFonts).length).toBe(1);
+
+            style1.cleanFonts();
+
+            expect(HTMLTextStyle.availableFonts[url].refs).toBe(2);
+            expect(Object.keys(HTMLTextStyle.availableFonts).length).toBe(1);
+
+            style2.cleanFonts();
+            expect(HTMLTextStyle.availableFonts[url].refs).toBe(1);
+            expect(Object.keys(HTMLTextStyle.availableFonts).length).toBe(1);
+
+            style3.cleanFonts();
+
+            expect(HTMLTextStyle.availableFonts[url]).toBeFalsy();
+            expect(Object.keys(HTMLTextStyle.availableFonts).length).toBe(0);
         });
     });
 });

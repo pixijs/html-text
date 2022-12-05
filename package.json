@@ -99,6 +99,7 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.3.3",
     "rollup-plugin-esbuild": "^4.10.1",
+    "tree-kill": "^1.2.2",
     "ts-jest": "^29.0.3",
     "typescript": "^4.0.0"
   },
@@ -109,6 +110,10 @@
     "preset": "ts-jest",
     "runner": "@kayahr/jest-electron-runner",
     "testEnvironment": "@kayahr/jest-electron-runner/environment",
-    "testMatch": ["<rootDir>/test/*.test.ts"]
+    "globalSetup": "<rootDir>/test/jest-global-setup.ts",
+    "globalTeardown": "<rootDir>/test/jest-global-teardown.ts",
+    "testMatch": [
+      "<rootDir>/test/*.test.ts"
+    ]
   }
 }
