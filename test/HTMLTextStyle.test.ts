@@ -124,7 +124,7 @@ describe('HTMLTextStyle', () =>
         {
             const style = new HTMLTextStyle();
 
-            style.globalCSS = `p { color: red; }`;
+            style.stylesheet = `p { color: red; }`;
             expect(style.toGlobalCSS()).toMatchSnapshot();
         });
     });

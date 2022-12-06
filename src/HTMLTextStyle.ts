@@ -96,7 +96,7 @@ class HTMLTextStyle extends TextStyle
     private _overrides: string[] = [];
 
     /** Global rules or stylesheet, useful for creating rules for rendering */
-    public globalCSS = '';
+    public stylesheet = '';
 
     /**
      * Convert a TextStyle to HTMLTextStyle
@@ -282,7 +282,7 @@ class HTMLTextStyle extends TextStyle
                 font-weight: ${font.weight};
                 font-style: ${font.style}; 
             }`
-        ), this.globalCSS);
+        ), this.stylesheet);
     }
 
     /** Convert numerical colors into hex-strings */
