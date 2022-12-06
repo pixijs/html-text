@@ -123,9 +123,12 @@ describe('HTMLTextStyle', () =>
         it('should converto CSS', () =>
         {
             const style = new HTMLTextStyle();
+            const id = style.styleID;
 
             style.stylesheet = `p { color: red; }`;
+
             expect(style.toGlobalCSS()).toMatchSnapshot();
+            expect(style.styleID).toBe(id + 1);
         });
     });
 
