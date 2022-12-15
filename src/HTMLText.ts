@@ -1,5 +1,5 @@
 import { Sprite } from '@pixi/sprite';
-import { Texture, Rectangle, settings, utils, ICanvas, ICanvasRenderingContext2D } from '@pixi/core';
+import { Texture, Rectangle, settings, utils, ICanvas, ICanvasRenderingContext2D, ISize } from '@pixi/core';
 import { TextStyle } from '@pixi/text';
 import { HTMLTextStyle } from './HTMLTextStyle';
 
@@ -16,7 +16,13 @@ import type { IDestroyOptions } from '@pixi/display';
  */
 export class HTMLText extends Sprite
 {
-    /** Default opens when destroying */
+    /**
+     * Default opens when destroying.
+     * @type {PIXI.IDestroyOptions}
+     * @property {boolean} texture=true - Whether to destroy the texture.
+     * @property {boolean} children=false - Whether to destroy the children.
+     * @property {boolean} baseTexture=true - Whether to destroy the base texture.
+     */
     public static defaultDestroyOptions: IDestroyOptions = {
         texture: true,
         children: false,
@@ -125,6 +131,56 @@ export class HTMLText extends Sprite
     }
 
     /**
+     * Calculate the size of the output text without actually drawing it.
+     * This includes the `padding` in the `style` object.
+     * This can be used as a fast-pass to do things like text-fitting.
+     * @param {object} [overrides] - Overrides for the text, style, and resolution.
+     * @param {string} [overrides.text] - The text to measure, if not specified, the current text is used.
+     * @param {HTMLTextStyle} [overrides.style] - The style to measure, if not specified, the current style is used.
+     * @param {number} [overrides.resolution] - The resolution to measure, if not specified, the current resolution is used.
+     * @return {PIXI.ISize} Width and height of the measured text.
+     */
+    measureText(overrides?: { text?: string, style?: HTMLTextStyle, resolution?: number }): ISize
+    {
+        const { text, style, resolution } = Object.assign({
+            text: this._text,
+            style: this._style,
+            resolution: this._resolution,
+        }, overrides);
+
+        Object.assign(this._domElement, {
+            innerHTML: text,
+            style: style.toCSS(resolution),
+        });
+        this._styleElement.textContent = style.toGlobalCSS();
+
+        // Measure the contents using the shadow DOM
+        const contentBounds = this._domElement.getBoundingClientRect();
+
+        const contentWidth = Math.min(this.maxWidth, Math.ceil(contentBounds.width));
+        const contentHeight = Math.min(this.maxHeight, Math.ceil(contentBounds.height));
+
+        this._svgRoot.setAttribute('width', contentWidth.toString());
+        this._svgRoot.setAttribute('height', contentHeight.toString());
+
+        // Undo the changes to the DOM element
+        if (text !== this._text)
+        {
+            this._domElement.innerHTML = this._text as string;
+        }
+        if (style !== this._style)
+        {
+            Object.assign(this._domElement, { style: this._style?.toCSS(resolution) });
+            this._styleElement.textContent = this._style?.toGlobalCSS() as string;
+        }
+
+        return {
+            width: contentWidth + (style.padding * 2),
+            height: contentHeight + (style.padding * 2),
+        };
+    }
+
+    /**
      * Manually refresh the text.
      * @public
      * @param {boolean} respectDirty - Whether to abort updating the
@@ -132,7 +188,7 @@ export class HTMLText extends Sprite
      */
     updateText(respectDirty = true): void
     {
-        const { style, resolution, canvas, context } = this;
+        const { style, canvas, context } = this;
 
         // check if style has changed..
         if (this.localStyleID !== style.styleID)
@@ -146,23 +202,12 @@ export class HTMLText extends Sprite
             return;
         }
 
-        Object.assign(this._domElement, {
-            innerHTML: this._text,
-            style: style.toCSS(resolution),
-        });
-        this._styleElement.textContent = style.toGlobalCSS();
+        const { width, height } = this.measureText();
 
-        // Measure the contents using the shadow DOM
-        const contentBounds = this._domElement.getBoundingClientRect();
-
-        const width = Math.min(this.maxWidth, Math.ceil(contentBounds.width));
-        const height = Math.min(this.maxHeight, Math.ceil(contentBounds.height));
-
-        this._svgRoot.setAttribute('width', width.toString());
-        this._svgRoot.setAttribute('height', height.toString());
-
-        canvas.width = Math.ceil((Math.max(1, width) + (style.padding * 2)));
-        canvas.height = Math.ceil((Math.max(1, height) + (style.padding * 2)));
+        // Make sure canvas is at least 1x1 so it drawable
+        // for sub-pixel sizes, round up to avoid clipping
+        canvas.width = Math.ceil((Math.max(1, width)));
+        canvas.height = Math.ceil((Math.max(1, height)));
 
         if (!this._loading)
         {
