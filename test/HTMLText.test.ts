@@ -43,4 +43,31 @@ describe('HTMLText', () =>
 
         expect(document.querySelector(query)).toBeFalsy();
     });
+
+    describe('measureText', () =>
+    {
+        it('should measure empty text to be drawable', () =>
+        {
+            const text = new HTMLText();
+            const size = text.measureText('');
+
+            expect(size).toBeTruthy();
+            expect(size.width).toBe(0);
+            expect(size.height).toBe(0);
+
+            text.destroy();
+        });
+
+        it('should measure text', () =>
+        {
+            const text = new HTMLText();
+            const size = text.measureText('Hello world!');
+
+            expect(size).toBeTruthy();
+            expect(size.width).toBeGreaterThan(0);
+            expect(size.height).toBeGreaterThan(0);
+
+            text.destroy();
+        });
+    });
 });
