@@ -16,6 +16,13 @@ import type { IDestroyOptions } from '@pixi/display';
  */
 export class HTMLText extends Sprite
 {
+    /** Default opens when destroying */
+    public static defaultDestroyOptions: IDestroyOptions = {
+        texture: true,
+        children: false,
+        baseTexture: true,
+    };
+
     /** Default maxWidth, set at construction */
     public static defaultMaxWidth = 2024;
 
@@ -47,6 +54,7 @@ export class HTMLText extends Sprite
     private _autoResolution = true;
     private _loading = false;
     private _shadow: HTMLElement;
+    private _shadowRoot: ShadowRoot;
     private localStyleID = -1;
     private dirty = false;
 
@@ -97,11 +105,9 @@ export class HTMLText extends Sprite
         this._foreignObject.appendChild(domElement);
         this._image = new Image();
         this._autoResolution = HTMLText.defaultAutoResolution;
-
-        const shadowRoot = shadow.attachShadow({ mode: 'open' });
-
-        shadowRoot.appendChild(svgRoot);
-        shadow.dataset.pixiId = '@pixi/text-html';
+        this._shadowRoot = shadow.attachShadow({ mode: 'open' });
+        this._shadowRoot.appendChild(svgRoot);
+        shadow.setAttribute('data-pixi-html-text', '1');
         Object.assign(shadow.style, {
             position: 'absolute',
             top: '0',
@@ -299,6 +305,13 @@ export class HTMLText extends Sprite
      */
     destroy(options?: boolean | IDestroyOptions | undefined)
     {
+        if (typeof options === 'boolean')
+        {
+            options = { children: options };
+        }
+
+        options = Object.assign({}, HTMLText.defaultDestroyOptions, options);
+
         super.destroy(options);
 
         const forceClear: any = null;
@@ -317,14 +330,20 @@ export class HTMLText extends Sprite
         }
         this.canvas = forceClear;
         this._style = forceClear;
+        this._svgRoot?.remove();
         this._svgRoot = forceClear;
+        this._domElement?.remove();
         this._domElement = forceClear;
+        this._foreignObject?.remove();
         this._foreignObject = forceClear;
+        this._styleElement?.remove();
         this._styleElement = forceClear;
+        this._shadow?.remove();
+        this._shadow = forceClear;
+        this._shadowRoot = forceClear;
         this._image.onload = null;
         this._image.src = '';
         this._image = forceClear;
-        this._shadow = forceClear;
     }
 
     /**
