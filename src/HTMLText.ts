@@ -134,12 +134,19 @@ export class HTMLText extends Sprite
      * Calculate the size of the output text without actually drawing it.
      * This includes the `padding` in the `style` object.
      * This can be used as a fast-pass to do things like text-fitting.
-     * @param {string} text - The text to measure.
+     * @param {object} [overrides] - Overrides for the text, style, and resolution.
+     * @param {string} [overrides.text] - The text to measure, if not specified, the current text is used.
+     * @param {HTMLTextStyle} [overrides.style] - The style to measure, if not specified, the current style is used.
+     * @param {number} [overrides.resolution] - The resolution to measure, if not specified, the current resolution is used.
+     * @return {PIXI.ISize} Width and height of the measured text.
      */
-    measureText(text: string): ISize
+    measureText(overrides?: { text?: string, style?: HTMLTextStyle, resolution?: number }): ISize
     {
-        const { style, resolution } = this;
-        const oldText = this._text as string;
+        const { text, style, resolution } = Object.assign({
+            text: this._text,
+            style: this._style,
+            resolution: this._resolution,
+        }, overrides);
 
         Object.assign(this._domElement, {
             innerHTML: text,
@@ -157,7 +164,15 @@ export class HTMLText extends Sprite
         this._svgRoot.setAttribute('height', contentHeight.toString());
 
         // Undo the changes to the DOM element
-        Object.assign(this._domElement, { innerHTML: oldText });
+        if (text !== this._text)
+        {
+            this._domElement.innerHTML = this._text as string;
+        }
+        if (style !== this._style)
+        {
+            Object.assign(this._domElement, { style: this._style?.toCSS(resolution) });
+            this._styleElement.textContent = this._style?.toGlobalCSS() as string;
+        }
 
         return {
             width: contentWidth + (style.padding * 2),
@@ -187,7 +202,7 @@ export class HTMLText extends Sprite
             return;
         }
 
-        const { width, height } = this.measureText(this._text as string);
+        const { width, height } = this.measureText();
 
         // Make sure canvas is at least 1x1 so it drawable
         // for sub-pixel sizes, round up to avoid clipping
