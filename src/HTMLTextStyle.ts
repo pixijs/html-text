@@ -373,7 +373,7 @@ class HTMLTextStyle extends TextStyle
         // arbitrary amount of time
         // @see https://bugs.webkit.org/show_bug.cgi?id=219770
         if (this.isSafari && this._fonts.length > 0 && prevFontsDirty)
-        {            
+        {
             return new Promise<void>((resolve) => setTimeout(resolve, 100));
         }
 
