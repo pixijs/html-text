@@ -351,8 +351,17 @@ class HTMLTextStyle extends TextStyle
         Object.assign(this, HTMLTextStyle.defaultOptions);
     }
 
-    /** Proving that Safari is the new IE */
-    private get isSafari(): boolean
+    /** @ignore */
+    public get numFonts(): number
+    {
+        return this._fonts.length;
+    }
+
+    /**
+     * Proving that Safari is the new IE
+     * @ignore
+     */
+    public get isSafari(): boolean
     {
         const { userAgent } = settings.ADAPTER.getNavigator();
 

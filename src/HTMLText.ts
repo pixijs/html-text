@@ -186,7 +186,7 @@ export class HTMLText extends Sprite
      * @param {boolean} respectDirty - Whether to abort updating the
      *        text if the Text isn't dirty and the function is called.
      */
-    updateText(respectDirty = true): void
+    async updateText(respectDirty = true): Promise<void>
     {
         const { style, canvas, context } = this;
 
@@ -211,24 +211,37 @@ export class HTMLText extends Sprite
 
         if (!this._loading)
         {
-            const image = this._image;
-            const svgURL = new XMLSerializer().serializeToString(this._svgRoot);
-
             this._loading = true;
-            image.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
-            image.onload = () =>
+            await new Promise<void>((resolve) =>
             {
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                context.drawImage(
-                    image,
-                    0, 0, width, height,
-                    0, 0, width, height,
-                );
-                image.src = '';
-                image.onload = null;
-                this._loading = false;
-                this.updateTexture();
-            };
+                const image = this._image;
+
+                image.onload = async () =>
+                {
+                    // Safari has a known bug where embedded fonts are not available
+                    // immediately after the image loads, to compensate we wait an
+                    // arbitrary amount of time
+                    // @see https://bugs.webkit.org/show_bug.cgi?id=219770
+                    if (style.isSafari && style.numFonts > 0)
+                    {
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.drawImage(
+                        image,
+                        0, 0, width, height,
+                        0, 0, width, height,
+                    );
+                    image.src = '';
+                    image.onload = null;
+                    this._loading = false;
+                    this.updateTexture();
+                    resolve();
+                };
+                const svgURL = new XMLSerializer().serializeToString(this._svgRoot);
+
+                image.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
+            });
         }
     }
 
