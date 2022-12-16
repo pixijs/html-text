@@ -138,7 +138,7 @@ describe('HTMLTextStyle', () =>
         {
             const style = new HTMLTextStyle();
             const id = style.styleID;
-            const url = 'http://localhost:8080/resources/Herborn.ttf';
+            const url = 'http://localhost:8090/resources/Herborn.ttf';
 
             await style.loadFont(url);
 
@@ -156,7 +156,7 @@ describe('HTMLTextStyle', () =>
         it('should allow for family, style, weight overrides', async () =>
         {
             const style = new HTMLTextStyle();
-            const url = 'http://localhost:8080/resources/Herborn.ttf';
+            const url = 'http://localhost:8090/resources/Herborn.ttf';
 
             await style.loadFont(url, {
                 family: 'MyFont',
@@ -178,7 +178,7 @@ describe('HTMLTextStyle', () =>
             const style1 = new HTMLTextStyle();
             const style2 = new HTMLTextStyle();
             const style3 = new HTMLTextStyle();
-            const url = 'http://localhost:8080/resources/Herborn.ttf';
+            const url = 'http://localhost:8090/resources/Herborn.ttf';
 
             await style1.loadFont(url);
             await style2.loadFont(url);

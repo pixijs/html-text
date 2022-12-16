@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "serve": "http-server . -o demo",
+    "serve": "http-server . -o demo -p 8080",
     "watch": "rollup -c config/rollup.js -w",
     "clean": "rimraf dist/* ",
     "build": "cross-env NODE_ENV=production rollup -c config/rollup.js",

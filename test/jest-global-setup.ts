@@ -4,7 +4,7 @@ import { join } from 'path';
 export default async () =>
 {
     const rootPath = join(process.cwd(), './test');
-    const httpServerProcess = spawn('http-server', ['-c-1', rootPath], {
+    const httpServerProcess = spawn('http-server', [rootPath, '-c-1', '-p', '8090'], {
         shell: process.platform === 'win32',
     });
 
