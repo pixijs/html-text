@@ -98,6 +98,9 @@ class HTMLTextStyle extends TextStyle
     /** Global rules or stylesheet, useful for creating rules for rendering */
     private _stylesheet = '';
 
+    /** Track font changes internally */
+    private fontsDirty = false;
+
     /**
      * Convert a TextStyle to HTMLTextStyle
      * @example
@@ -134,6 +137,7 @@ class HTMLTextStyle extends TextStyle
             this.fontFamily = 'Arial';
             this._fonts.length = 0;
             this.styleID++;
+            this.fontsDirty = true;
         }
     }
 
@@ -150,6 +154,7 @@ class HTMLTextStyle extends TextStyle
             this._fonts.push(font);
             font.refs++;
             this.styleID++;
+            this.fontsDirty = true;
 
             return Promise.resolve();
         }
@@ -196,6 +201,7 @@ class HTMLTextStyle extends TextStyle
                 await document.fonts.ready;
 
                 this.styleID++;
+                this.fontsDirty = true;
             });
     }
 
@@ -351,17 +357,34 @@ class HTMLTextStyle extends TextStyle
         Object.assign(this, HTMLTextStyle.defaultOptions);
     }
 
-    /** @ignore */
-    public get numFonts(): number
+    /**
+     * Called after the image is loaded but before drawing to the canvas.
+     * Mostly used to handle Safari's font loading bug.
+     * @ignore
+     */
+    public onBeforeDraw()
     {
-        return this._fonts.length;
+        const { fontsDirty: prevFontsDirty } = this;
+
+        this.fontsDirty = false;
+
+        // Safari has a known bug where embedded fonts are not available
+        // immediately after the image loads, to compensate we wait an
+        // arbitrary amount of time
+        // @see https://bugs.webkit.org/show_bug.cgi?id=219770
+        if (this.isSafari && this._fonts.length > 0 && prevFontsDirty)
+        {            
+            return new Promise<void>((resolve) => setTimeout(resolve, 100));
+        }
+
+        return Promise.resolve();
     }
 
     /**
      * Proving that Safari is the new IE
      * @ignore
      */
-    public get isSafari(): boolean
+    private get isSafari(): boolean
     {
         const { userAgent } = settings.ADAPTER.getNavigator();
 
