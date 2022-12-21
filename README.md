@@ -80,7 +80,6 @@ Not all styles and values are compatible between PIXI.Text, mainly because Text 
 * `dropShadowDistance`
 * `dropShadowBlur` ‡
 * `dropShadowColor`
-* `trim`
 * `stroke`
 * `strokeThickness`
 
@@ -91,8 +90,11 @@ Not all styles and values are compatible between PIXI.Text, mainly because Text 
 
 * `fillGradientStops`
 * `fillGradientType`
+* `lineJoin`
 * `miterLimit`
 * `textBaseline`
+* `trim`
+* `leading`
 
 ## Example
 

@@ -1,5 +1,5 @@
 import { Sprite } from '@pixi/sprite';
-import { Texture, Rectangle, settings, utils, ICanvas, ICanvasRenderingContext2D, ISize } from '@pixi/core';
+import { Texture, Rectangle, settings, utils, ISize, ImageResource } from '@pixi/core';
 import { TextStyle } from '@pixi/text';
 import { HTMLTextStyle } from './HTMLTextStyle';
 
@@ -52,8 +52,6 @@ export class HTMLText extends Sprite
     private _svgRoot: SVGSVGElement;
     private _foreignObject: SVGForeignObjectElement;
     private _image: HTMLImageElement;
-    private canvas: ICanvas;
-    private context: ICanvasRenderingContext2D;
     private _resolution: number;
     private _text: string | null = null;
     private _style: HTMLTextStyle | null = null;
@@ -72,14 +70,16 @@ export class HTMLText extends Sprite
      * @param {HTMLTextStyle|PIXI.TextStyle|PIXI.ITextStyle} [style] - Style setting to use.
      *        Strongly recommend using an HTMLTextStyle object. Providing a PIXI.TextStyle
      *        will convert the TextStyle to an HTMLTextStyle and will no longer be linked.
-     * @param {HTMLCanvasElement} [canvas] - Optional canvas to use for rendering.
-     *.       if undefined, will generate it's own canvas using createElement.
      */
-    constructor(text = '', style: HTMLTextStyle | TextStyle | Partial<ITextStyle> = {}, canvas?: ICanvas)
+    constructor(text = '', style: HTMLTextStyle | TextStyle | Partial<ITextStyle> = {})
     {
-        canvas = canvas || settings.ADAPTER.createCanvas(3, 3);
-
-        const texture = Texture.from(canvas, { scaleMode: settings.SCALE_MODE });
+        const image = new Image();
+        const texture = Texture.from<ImageResource>(image, {
+            scaleMode: settings.SCALE_MODE,
+            resourceOptions: {
+                autoLoad: false,
+            },
+        });
 
         texture.orig = new Rectangle();
         texture.trim = new Rectangle();
@@ -109,7 +109,7 @@ export class HTMLText extends Sprite
         this._foreignObject = foreignObject;
         this._foreignObject.appendChild(styleElement);
         this._foreignObject.appendChild(domElement);
-        this._image = new Image();
+        this._image = image;
         this._autoResolution = HTMLText.defaultAutoResolution;
         this._shadowRoot = shadow.attachShadow({ mode: 'open' });
         this._shadowRoot.appendChild(svgRoot);
@@ -122,9 +122,6 @@ export class HTMLText extends Sprite
             height: '1px',
         });
         document.body.appendChild(shadow);
-
-        this.canvas = canvas;
-        this.context = canvas.getContext('2d') as ICanvasRenderingContext2D;
         this._resolution = HTMLText.defaultResolution ?? settings.RESOLUTION;
         this.text = text;
         this.style = style;
@@ -188,7 +185,7 @@ export class HTMLText extends Sprite
      */
     async updateText(respectDirty = true): Promise<void>
     {
-        const { style, canvas, context } = this;
+        const { style, _image: image } = this;
 
         // check if style has changed..
         if (this.localStyleID !== style.styleID)
@@ -206,27 +203,17 @@ export class HTMLText extends Sprite
 
         // Make sure canvas is at least 1x1 so it drawable
         // for sub-pixel sizes, round up to avoid clipping
-        canvas.width = Math.ceil((Math.max(1, width)));
-        canvas.height = Math.ceil((Math.max(1, height)));
+        image.width = Math.ceil((Math.max(1, width)));
+        image.height = Math.ceil((Math.max(1, height)));
 
         if (!this._loading)
         {
             this._loading = true;
             await new Promise<void>((resolve) =>
             {
-                const image = this._image;
-
                 image.onload = async () =>
                 {
                     await style.onBeforeDraw();
-                    context.clearRect(0, 0, canvas.width, canvas.height);
-                    context.drawImage(
-                        image,
-                        0, 0, width, height,
-                        0, 0, width, height,
-                    );
-                    image.src = '';
-                    image.onload = null;
                     this._loading = false;
                     this.updateTexture();
                     resolve();
@@ -238,34 +225,35 @@ export class HTMLText extends Sprite
         }
     }
 
+    /** The raw image element that is rendered under-the-hood. */
+    public get source(): HTMLImageElement
+    {
+        return this._image;
+    }
+
+    /**
+     * @deprecated since 3.2.0
+     * @see HTMLText#image
+     */
+    public get canvas(): HTMLImageElement
+    {
+        utils.deprecation('3.2.0', 'HTMLText property "canvas" is deprecated, use "source" instead.');
+
+        return this._image;
+    }
+
     /**
      * Update the texture resource.
      * @private
      */
     updateTexture()
     {
-        const { style, texture, resolution } = this;
+        const { style, texture, _image: image, resolution } = this;
+        const { padding } = style;
+        const { baseTexture } = texture;
 
-        const canvas = this.canvas as HTMLCanvasElement;
-        const context = this.context as CanvasRenderingContext2D;
-
-        if (style.trim)
-        {
-            const { width, height, data } = utils.trimCanvas(canvas);
-
-            if (data)
-            {
-                canvas.width = width;
-                canvas.height = height;
-                context.putImageData(data, 0, 0);
-            }
-        }
-
-        const padding = style.trim ? 0 : style.padding;
-        const baseTexture = texture.baseTexture;
-
-        texture.trim.width = texture._frame.width = canvas.width / resolution;
-        texture.trim.height = texture._frame.height = canvas.height / resolution;
+        texture.trim.width = texture._frame.width = image.width / resolution;
+        texture.trim.height = texture._frame.height = image.height / resolution;
         texture.trim.x = -padding;
         texture.trim.y = -padding;
 
@@ -275,7 +263,7 @@ export class HTMLText extends Sprite
         // call sprite onTextureUpdate to update scale if _width or _height were set
         this._onTextureUpdate();
 
-        baseTexture.setRealSize(canvas.width, canvas.height, resolution);
+        baseTexture.setRealSize(image.width, image.height, resolution);
 
         this.dirty = false;
     }
@@ -367,19 +355,11 @@ export class HTMLText extends Sprite
 
         const forceClear: any = null;
 
-        // make sure to reset the the context and canvas..
-        // dont want this hanging around in memory!
-        this.context = null as any;
-        if (this.canvas)
-        {
-            this.canvas.width = this.canvas.height = 0; // Safari hack
-        }
         // Remove any loaded fonts if we created the HTMLTextStyle
         if (this.ownsStyle)
         {
             this._style?.cleanFonts();
         }
-        this.canvas = forceClear;
         this._style = forceClear;
         this._svgRoot?.remove();
         this._svgRoot = forceClear;
@@ -405,7 +385,7 @@ export class HTMLText extends Sprite
     {
         this.updateText(true);
 
-        return Math.abs(this.scale.x) * this.canvas.width / this.resolution;
+        return Math.abs(this.scale.x) * this._image.width / this.resolution;
     }
 
     set width(value) // eslint-disable-line require-jsdoc
@@ -414,7 +394,7 @@ export class HTMLText extends Sprite
 
         const s = utils.sign(this.scale.x) || 1;
 
-        this.scale.x = s * value / this.canvas.width / this.resolution;
+        this.scale.x = s * value / this._image.width / this.resolution;
         this._width = value;
     }
 
@@ -426,7 +406,7 @@ export class HTMLText extends Sprite
     {
         this.updateText(true);
 
-        return Math.abs(this.scale.y) * this.canvas.height / this.resolution;
+        return Math.abs(this.scale.y) * this._image.height / this.resolution;
     }
 
     set height(value) // eslint-disable-line require-jsdoc
@@ -435,7 +415,7 @@ export class HTMLText extends Sprite
 
         const s = utils.sign(this.scale.y) || 1;
 
-        this.scale.y = s * value / this.canvas.height / this.resolution;
+        this.scale.y = s * value / this._image.height / this.resolution;
         this._height = value;
     }
 
