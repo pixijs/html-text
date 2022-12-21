@@ -72,7 +72,7 @@
         text2.style.loadFont('./OpenSans-Bold.ttf', { family: 'OpenSans', weight: 'bold' }),
       ]).then(() => app.render());
       
-      document.getElementById('text').appendChild(text2.canvas);
+      document.getElementById('text').appendChild(text2.source);
       const rect = new PIXI.Graphics();
 
       const refreshBounds = () => rect

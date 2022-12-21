@@ -1,5 +1,5 @@
 import { settings, utils } from '@pixi/core';
-import { TextStyle, TextStyleFontStyle, TextStyleFontWeight } from '@pixi/text';
+import { TextStyle, TextStyleFontStyle, TextStyleFontWeight, TextStyleLineJoin } from '@pixi/text';
 
 import type { ITextStyle, TextStyleTextBaseline } from '@pixi/text';
 
@@ -7,7 +7,14 @@ import type { ITextStyle, TextStyleTextBaseline } from '@pixi/text';
 type HTMLTextStyleWhiteSpace = 'normal' | 'pre' | 'pre-line' | 'nowrap' | 'pre-wrap';
 
 // Subset of ITextStyle
-type ITextStyleIgnore = 'whiteSpace' | 'fillGradientStops' | 'fillGradientType' | 'miterLimit' | 'textBaseline';
+type ITextStyleIgnore = 'whiteSpace'
+| 'fillGradientStops'
+| 'fillGradientType'
+| 'miterLimit'
+| 'textBaseline'
+| 'trim'
+| 'leading'
+| 'lineJoin';
 
 /**
  * Modifed versions from ITextStyle.
@@ -62,31 +69,54 @@ class HTMLTextStyle extends TextStyle
      * with the exception of whiteSpace, which is set to 'normal' by default.
      */
     public static readonly defaultOptions: IHTMLTextStyle = {
+        /** Align */
         align: 'left',
+        /** Break words */
         breakWords: false,
+        /** Drop shadow */
         dropShadow: false,
+        /** Drop shadow alpha */
         dropShadowAlpha: 1,
+        /**
+         * Drop shadow angle
+         * @type {number}
+         * @default Math.PI / 6
+         */
         dropShadowAngle: Math.PI / 6,
+        /** Drop shadow blur */
         dropShadowBlur: 0,
+        /** Drop shadow color */
         dropShadowColor: 'black',
+        /** Drop shadow distance */
         dropShadowDistance: 5,
+        /** Fill */
         fill: 'black',
+        /** Font family */
         fontFamily: 'Arial',
+        /** Font size */
         fontSize: 26,
+        /** Font style */
         fontStyle: 'normal',
+        /** Font variant */
         fontVariant: 'normal',
+        /** Font weight */
         fontWeight: 'normal',
+        /** Letter spacing */
         letterSpacing: 0,
+        /** Line height */
         lineHeight: 0,
-        lineJoin: 'miter',
+        /** Padding */
         padding: 0,
+        /** Stroke */
         stroke: 'black',
+        /** Stroke thickness */
         strokeThickness: 0,
-        trim: false,
+        /** White space */
         whiteSpace: 'normal',
+        /** Word wrap */
         wordWrap: false,
+        /** Word wrap width */
         wordWrapWidth: 100,
-        leading: 0,
     };
 
     /** For using custom fonts */
@@ -327,18 +357,12 @@ class HTMLTextStyle extends TextStyle
         let color = this.normalizeColor(this.dropShadowColor);
         const alpha = this.dropShadowAlpha;
         const x = Math.round(Math.cos(this.dropShadowAngle) * this.dropShadowDistance);
-        let y = Math.round(Math.sin(this.dropShadowAngle) * this.dropShadowDistance);
+        const y = Math.round(Math.sin(this.dropShadowAngle) * this.dropShadowDistance);
 
         // Append alpha to color
         if (color.startsWith('#') && alpha < 1)
         {
             color += (alpha * 255 | 0).toString(16).padStart(2, '0');
-        }
-
-        // Hack: text-shadow is flipped on Safari, boo!
-        if (this.isSafari)
-        {
-            y *= -1;
         }
 
         const position = `${x * scale}px ${y * scale}px`;
@@ -421,6 +445,16 @@ class HTMLTextStyle extends TextStyle
         return super.miterLimit;
     }
 
+    /** @ignore trim is not supported by HTMLText */
+    override set trim(_value: boolean)
+    {
+        console.warn('[HTMLTextStyle] trim is not supported by HTMLText');
+    }
+    override get trim()
+    {
+        return super.trim;
+    }
+
     /** @ignore textBaseline is not supported by HTMLText */
     override set textBaseline(_value: TextStyleTextBaseline)
     {
@@ -429,6 +463,26 @@ class HTMLTextStyle extends TextStyle
     override get textBaseline()
     {
         return super.textBaseline;
+    }
+
+    /** @ignore leading is not supported by HTMLText */
+    override set leading(_value: number)
+    {
+        console.warn('[HTMLTextStyle] leading is not supported by HTMLText');
+    }
+    override get leading()
+    {
+        return super.leading;
+    }
+
+    /** @ignore lineJoin is not supported by HTMLText */
+    override set lineJoin(_value: TextStyleLineJoin)
+    {
+        console.warn('[HTMLTextStyle] lineJoin is not supported by HTMLText');
+    }
+    override get lineJoin()
+    {
+        return super.lineJoin;
     }
 }
 
