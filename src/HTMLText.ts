@@ -57,8 +57,6 @@ export class HTMLText extends Sprite
     private _style: HTMLTextStyle | null = null;
     private _autoResolution = true;
     private _loading = false;
-    private _shadow: HTMLElement;
-    private _shadowRoot: ShadowRoot;
     private localStyleID = -1;
     private dirty = false;
 
@@ -88,7 +86,6 @@ export class HTMLText extends Sprite
 
         const nssvg = 'http://www.w3.org/2000/svg';
         const nsxhtml = 'http://www.w3.org/1999/xhtml';
-        const shadow = document.createElement('div');
         const svgRoot = document.createElementNS(nssvg, 'svg');
         const foreignObject = document.createElementNS(nssvg, 'foreignObject');
         const domElement = document.createElementNS(nsxhtml, 'div');
@@ -102,7 +99,6 @@ export class HTMLText extends Sprite
 
         this.maxWidth = HTMLText.defaultMaxWidth;
         this.maxHeight = HTMLText.defaultMaxHeight;
-        this._shadow = shadow;
         this._domElement = domElement;
         this._styleElement = styleElement;
         this._svgRoot = svgRoot;
@@ -111,17 +107,6 @@ export class HTMLText extends Sprite
         this._foreignObject.appendChild(domElement);
         this._image = image;
         this._autoResolution = HTMLText.defaultAutoResolution;
-        this._shadowRoot = shadow.attachShadow({ mode: 'open' });
-        this._shadowRoot.appendChild(svgRoot);
-        shadow.setAttribute('data-pixi-html-text', '1');
-        Object.assign(shadow.style, {
-            position: 'absolute',
-            top: '0',
-            left: '-1px',
-            width: '1px',
-            height: '1px',
-        });
-        document.body.appendChild(shadow);
         this._resolution = HTMLText.defaultResolution ?? settings.RESOLUTION;
         this.text = text;
         this.style = style;
@@ -152,7 +137,10 @@ export class HTMLText extends Sprite
         this._styleElement.textContent = style.toGlobalCSS();
 
         // Measure the contents using the shadow DOM
+        document.body.appendChild(this._svgRoot);
         const contentBounds = this._domElement.getBoundingClientRect();
+
+        this._svgRoot.remove();
 
         const contentWidth = Math.min(this.maxWidth, Math.ceil(contentBounds.width));
         const contentHeight = Math.min(this.maxHeight, Math.ceil(contentBounds.height));
@@ -369,9 +357,6 @@ export class HTMLText extends Sprite
         this._foreignObject = forceClear;
         this._styleElement?.remove();
         this._styleElement = forceClear;
-        this._shadow?.remove();
-        this._shadow = forceClear;
-        this._shadowRoot = forceClear;
         this._image.onload = null;
         this._image.src = '';
         this._image = forceClear;
