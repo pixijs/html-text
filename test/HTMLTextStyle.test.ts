@@ -1,8 +1,25 @@
 import { HTMLTextStyle } from '../src/HTMLTextStyle';
 import { TextStyle } from '@pixi/text';
+import { Server } from 'http';
+import { createServer } from 'http-server';
 
 describe('HTMLTextStyle', () =>
 {
+    let server: Server;
+    let baseUrl: string;
+
+    beforeAll(() =>
+    {
+        server = createServer({ root: __dirname });
+        server.listen(8090);
+        baseUrl = 'http://localhost:8090';
+    });
+
+    afterAll(() =>
+    {
+        server.close();
+    });
+
     it('should create an instance', () =>
     {
         expect(new HTMLTextStyle()).toBeTruthy();
@@ -138,7 +155,7 @@ describe('HTMLTextStyle', () =>
         {
             const style = new HTMLTextStyle();
             const id = style.styleID;
-            const url = 'http://localhost:8090/resources/Herborn.ttf';
+            const url = `${baseUrl}/resources/Herborn.ttf`;
 
             await style.loadFont(url);
 
@@ -156,7 +173,7 @@ describe('HTMLTextStyle', () =>
         it('should allow for family, style, weight overrides', async () =>
         {
             const style = new HTMLTextStyle();
-            const url = 'http://localhost:8090/resources/Herborn.ttf';
+            const url = `${baseUrl}/resources/Herborn.ttf`;
 
             await style.loadFont(url, {
                 family: 'MyFont',
@@ -178,7 +195,7 @@ describe('HTMLTextStyle', () =>
             const style1 = new HTMLTextStyle();
             const style2 = new HTMLTextStyle();
             const style3 = new HTMLTextStyle();
-            const url = 'http://localhost:8090/resources/Herborn.ttf';
+            const url = `${baseUrl}/resources/Herborn.ttf`;
 
             await style1.loadFont(url);
             await style2.loadFont(url);

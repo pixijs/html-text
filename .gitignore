@@ -1,6 +1,6 @@
 node_modules
 dist
+lib
 docs
 .DS_Store
-.types_output
 example.api.json*

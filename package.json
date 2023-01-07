@@ -2,44 +2,30 @@
   "name": "@pixi/text-html",
   "version": "3.2.1",
   "description": "Multi-Style Text Rendering Plugin for PixiJS",
-  "main": "dist/html-text.cjs.js",
-  "module": "dist/html-text.es.mjs",
-  "bundle": "dist/html-text.js",
-  "types": "dist/html-text.d.ts",
+  "main": "lib/index.js",
+  "module": "lib/index.mjs",
+  "types": "lib/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/html-text.es.mjs",
-      "require": "./dist/html-text.cjs.js",
-      "types": "./dist/html-text.d.ts"
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
     }
   },
   "scripts": {
-    "serve": "http-server . -o demo -p 8080",
-    "watch": "rollup -c config/rollup.js -w",
-    "clean": "rimraf dist/* ",
-    "build": "cross-env NODE_ENV=production rollup -c config/rollup.js",
-    "postbuild": "run-s build:types",
-    "build:dev": "rollup -c  config/rollup.js",
-    "prebuild:types": "rimraf .types_output/**",
-    "build:types": "tsc --declaration --emitDeclarationOnly --skipLibCheck --outDir .types_output",
-    "postbuild:types": "api-extractor run --local",
-    "demo": "run-p watch serve",
-    "lint": "eslint src test",
-    "lint:fix": "npm run lint -- --fix",
-    "types": "tsc -noEmit",
-    "test": "run-s lint types unit-test build",
-    "unit-test": "jest",
-    "publish:patch": "npm version patch && run-s publish:skip",
-    "publish:minor": "npm version minor && run-s publish:skip",
-    "publish:major": "npm version major && run-s publish:skip",
-    "publish:skip": "npm publish",
-    "postpublish": "run-s deploy && git push && git push --tags",
-    "prepublishOnly": "run-s lint clean build",
+    "watch": "extension-scripts watch",
+    "clean": "extension-scripts clean",
+    "build": "extension-scripts build",
+    "start": "extension-scripts serve",
+    "lint": "extension-scripts lint",
+    "lint:fix": "extension-scripts lint --fix",
+    "types": "extension-scripts types",
+    "test": "extension-scripts test",
+    "release": "extension-scripts release",
     "prepack": "clean-package",
     "postpack": "clean-package restore",
-    "docs": "webdoc -c config/webdoc.json -r README.md",
-    "predeploy": "run-s build docs",
-    "deploy": "gh-pages -f -d . -s \"{demo,docs,dist}/**\""
+    "docs": "extension-scripts docs",
+    "deploy": "extension-scripts deploy"
   },
   "homepage": "https://pixijs.io/html-text/docs/",
   "bugs": "https://github.com/pixijs/html-text/issues",
@@ -61,60 +47,45 @@
       "devDependencies",
       "pre-commit",
       "scripts",
-      "eslintConfig",
-      "jest"
+      "extensionConfig"
     ]
   },
-  "keywords": [],
+  "extensionConfig": {
+    "namespace": "PIXI",
+    "docsName": "PixiJS HTMLText",
+    "docsTitle": "PixiJS HTMLText",
+    "docsDescription": "API Documentation for HTMLText for PixiJS",
+    "docsKeyword": "PixiJS, Text, canvas, rendering, typography, CSS, SVG"
+  },
+  "keywords": [
+    "pixijs",
+    "html",
+    "text",
+    "rendering",
+    "layout",
+    "rtl",
+    "emoji"
+  ],
   "files": [
-    "dist"
+    "dist",
+    "lib"
   ],
   "author": "Matt Karl <matt@mattkarl.com>",
   "license": "MIT",
   "peerDependencies": {
-    "@pixi/core": "^7.0.0-X",
-    "@pixi/display": "^7.0.0-X",
-    "@pixi/sprite": "^7.0.0-X",
-    "@pixi/text": "^7.0.0-X"
+    "@pixi/core": "^7.0.0",
+    "@pixi/display": "^7.0.0",
+    "@pixi/sprite": "^7.0.0",
+    "@pixi/text": "^7.0.0"
   },
   "devDependencies": {
-    "@kayahr/jest-electron-runner": "^29.3.0",
-    "@microsoft/api-extractor": "^7.31.1",
-    "@pixi/core": "^7.0.0-X",
-    "@pixi/display": "^7.0.0-X",
-    "@pixi/eslint-config": "^4.0.1",
-    "@pixi/sprite": "^7.0.0-X",
-    "@pixi/text": "^7.0.0-X",
-    "@pixi/webdoc-template": "^1.5.3",
-    "@types/jest": "^29.2.4",
-    "@typescript-eslint/eslint-plugin": "^5.38.0",
-    "@webdoc/cli": "^2.1.2",
+    "@pixi/core": "^7.0.0",
+    "@pixi/display": "^7.0.0",
+    "@pixi/extension-scripts": "^1.1.2",
+    "@pixi/sprite": "^7.0.0",
+    "@pixi/text": "^7.0.0",
+    "@types/http-server": "^0.12.1",
     "clean-package": "^1.0.1",
-    "cross-env": "^7.0.2",
-    "eslint": "^7.0.0",
-    "gh-pages": "^3.2.3",
-    "http-server": "^0.12.1",
-    "jest": "^29.3.1",
-    "npm-run-all": "^4.1.5",
-    "pre-commit": "^1.2.2",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.3.3",
-    "rollup-plugin-esbuild": "^4.10.1",
-    "tree-kill": "^1.2.2",
-    "ts-jest": "^29.0.3",
-    "typescript": "^4.0.0"
-  },
-  "eslintConfig": {
-    "extends": "@pixi/eslint-config"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "runner": "@kayahr/jest-electron-runner",
-    "testEnvironment": "@kayahr/jest-electron-runner/environment",
-    "globalSetup": "<rootDir>/test/jest-global-setup.ts",
-    "globalTeardown": "<rootDir>/test/jest-global-teardown.ts",
-    "testMatch": [
-      "<rootDir>/test/*.test.ts"
-    ]
+    "pre-commit": "^1.2.2"
   }
 }
