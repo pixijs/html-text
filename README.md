@@ -1,6 +1,6 @@
 # PixiJS HTMLText
 
-[![Node.js CI](https://github.com/pixijs/html-text/workflows/Node.js%20CI/badge.svg)](https://github.com/pixijs/html-text/actions?query=workflow%3A%22Node.js+CI%22)
+[![Node.js CI](https://github.com/pixijs/html-text/workflows/Node.js%20CI/badge.svg)](https://github.com/pixijs/html-text/actions?query=workflow%3A%22Node.js+CI%22) ![npm (scoped)](https://img.shields.io/npm/v/@pixi/text-html)
 
 An alternative to `PIXI.Text` that works with PixiJS v5 (both WebGL and Canvas), however, it has some advantages:
 
