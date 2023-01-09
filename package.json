@@ -22,8 +22,6 @@
     "types": "xs types",
     "test": "xs test",
     "release": "xs release",
-    "prepack": "clean-package",
-    "postpack": "clean-package restore",
     "docs": "xs docs",
     "deploy": "xs deploy"
   },
@@ -40,16 +38,6 @@
     "lint",
     "types"
   ],
-  "clean-package": {
-    "indent": 2,
-    "remove": [
-      "clean-package",
-      "devDependencies",
-      "pre-commit",
-      "scripts",
-      "extensionConfig"
-    ]
-  },
   "extensionConfig": {
     "namespace": "PIXI",
     "docsName": "PixiJS HTMLText",
@@ -81,10 +69,9 @@
   "devDependencies": {
     "@pixi/core": "^7.0.0",
     "@pixi/display": "^7.0.0",
-    "@pixi/extension-scripts": "^1.2.1",
+    "@pixi/extension-scripts": "^1.4.0",
     "@pixi/sprite": "^7.0.0",
     "@pixi/text": "^7.0.0",
-    "clean-package": "^1.0.1",
     "pre-commit": "^1.2.2"
   }
 }
