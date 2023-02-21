@@ -1,3 +1,6 @@
+> **Warning**
+> This repository is no longer maintained. HTMLText has been rolled into the [main project](https://github.com/pixijs/pixijs) and it now bundled by default in `pixi.js` or `pixi.js-legacy` packages.
+
 # PixiJS HTMLText
 
 [![Node.js CI](https://github.com/pixijs/html-text/workflows/Node.js%20CI/badge.svg)](https://github.com/pixijs/html-text/actions?query=workflow%3A%22Node.js+CI%22) ![npm (scoped)](https://img.shields.io/npm/v/@pixi/text-html)
