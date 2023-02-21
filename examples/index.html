@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>PixiJS HTMLText</title>
+    <script src="https://pixijs.download/dev/pixi-legacy.min.js"></script>
+    <script src="../dist/pixi-text-html.js"></script>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background: #eee;
+          font-family: Arial, sans-serif;
+          text-align: center;
+        }
+        canvas {
+          display: block;
+          margin: 0 auto 20px;
+          position: relative;
+        }
+        #text canvas {
+          border: 1px dotted #999;
+        }
+    </style>
+  </head>
+  <body>
+    <h1>PixiJS HTMLText Demo</h1>
+    <div id="app"></div>
+    <h2>Internal Preview</h2>
+    <div id="text"></div>
+    <script>
+      const app = new PIXI.Application({
+        width: 800,
+        height: 500,
+        backgroundColor:0x999999,
+        resolution: window.devicePixelRatio,
+        autoStart: false,
+        autoDensity: true,
+      });
+      document.getElementById('app').appendChild(app.view);
+
+      const style = new PIXI.HTMLTextStyle({
+        fontSize: 40,
+        fontFamily: ['OpenSans', 'Courier New'],
+        align: 'justify',
+        letterSpacing: 1,
+        wordWrap: true,
+        wordWrapWidth: 600,
+        lineHeight: 48,
+        dropShadow: true,
+        dropShadowDistance: 1,
+        dropShadowAngle: Math.PI / 2,
+        dropShadowColor: '#ffffff',
+        dropShadowAlpha: 0.5,
+        whiteSpace: 'normal',
+      });
+      style.addOverride('background-image: linear-gradient(45deg, #f3ec78, #af4261)');
+
+      const text = 'Lorem ipsum dolor sit amet, &#x1F680; <b>consectetur &nbsp; adipiscing elit</b>.<br>Phasellus porta&nbsp;nisi est, vitae <i>sagittis ex gravida ac</i>. Sed vitae malesuada neque.';
+
+      const text2 = new PIXI.HTMLText(text, style);
+      text2.texture.baseTexture.on('update', () => {
+        app.render();
+        refreshBounds();
+      });
+      text2.y = 20;
+      text2.x = 20;
+
+      // Load the font weights
+      Promise.all([
+        text2.style.loadFont('./OpenSans-Regular.ttf', { family: 'OpenSans' }),
+        text2.style.loadFont('./OpenSans-Bold.ttf', { family: 'OpenSans', weight: 'bold' }),
+      ]).then(() => app.render());
+      
+      document.getElementById('text').appendChild(text2.source);
+      const rect = new PIXI.Graphics();
+
+      const refreshBounds = () => rect
+        .clear()
+        .beginFill(0, 0.01)
+        .lineStyle({ color: 0xffffff, width: 1, native: true })
+        .drawRect(text2.x, text2.y, text2.width, text2.height);
+
+      refreshBounds();
+
+      app.stage.addChild(text2, rect);
+    </script>
+  </body>
+</html>
